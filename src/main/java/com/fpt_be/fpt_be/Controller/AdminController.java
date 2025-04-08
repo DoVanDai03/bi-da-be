@@ -1,50 +1,49 @@
 package com.fpt_be.fpt_be.Controller;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.fpt_be.fpt_be.Dto.UserDto;
-import com.fpt_be.fpt_be.Entity.User;
+import com.fpt_be.fpt_be.Dto.AdminDto;
+import com.fpt_be.fpt_be.Entity.Admin;
 import com.fpt_be.fpt_be.Security.JwtTokenProvider;
-import com.fpt_be.fpt_be.Service.UserService;
+import com.fpt_be.fpt_be.Service.AdminService;
 
 @RestController
-@RequestMapping("/api")
-public class DangNhapController {
+@RequestMapping("/api/admin")
+public class AdminController {
+
     @Autowired
-    private UserService userService;
+    private AdminService adminService;
     
     @Autowired
     private JwtTokenProvider tokenProvider;
-
+    
     @PostMapping("/dang-nhap")
-    public ResponseEntity<?> dangNhap(@RequestBody UserDto request) {
+    public ResponseEntity<?> dangNhapAdmin(@RequestBody AdminDto request) {
         try {
             if (request.getEmail() == null || request.getPassword() == null) {
                 return ResponseEntity.badRequest()
                     .body(Map.of("status", false, "message", "Email và mật khẩu không được để trống"));
             }
             
-            User user = userService.dangNhap(request.getEmail(), request.getPassword());
-            String token = tokenProvider.generateUserToken(user.getId(), user.getEmail());
+            Admin admin = adminService.dangNhapAdmin(request.getEmail(), request.getPassword());
+            String token = tokenProvider.generateAdminToken(admin.getId(), admin.getEmail());
             
             return ResponseEntity.ok(Map.of(
                 "status", true, 
                 "message", "Đăng nhập thành công!", 
                 "token", token,
-                "user", Map.of(
-                    "id", user.getId(),
-                    "email", user.getEmail(),
-                    "hoVaTen", user.getHoVaTen()
+                "admin", Map.of(
+                    "id", admin.getId(),
+                    "email", admin.getEmail(),
+                    "hoVaTen", admin.getHoVaTen(),
+                    "chucVu", admin.getChucVu(),
+                    "quyenHan", admin.getQuyenHan()
                 )
             ));
         } catch (RuntimeException e) {
@@ -55,7 +54,7 @@ public class DangNhapController {
                     .body(Map.of("status", false, "message", "Có lỗi xảy ra trong quá trình đăng nhập"));
         }
     }
-
+    
     @GetMapping("/kiem-tra-token")
     public ResponseEntity<?> kiemTraToken(@RequestHeader(value = "Authorization", required = false) String authHeader) {
         try {
@@ -65,19 +64,21 @@ public class DangNhapController {
 
             String token = authHeader.substring(7);
             if (tokenProvider.validateToken(token)) {
-                if (!tokenProvider.isUserToken(token)) {
-                    return ResponseEntity.ok(Map.of("status", false, "message", "Token không phải của khách hàng"));
+                if (!tokenProvider.isAdminToken(token)) {
+                    return ResponseEntity.ok(Map.of("status", false, "message", "Token không có quyền admin"));
                 }
                 
-                Long userId = tokenProvider.getUserIdFromToken(token);
-                User user = userService.getUserById(userId);
+                Long adminId = tokenProvider.getUserIdFromToken(token);
+                Admin admin = adminService.getAdminById(adminId);
                 return ResponseEntity.ok(Map.of(
                     "status", true, 
                     "message", "Token hợp lệ", 
-                    "user", Map.of(
-                        "id", user.getId(),
-                        "email", user.getEmail(),
-                        "hoVaTen", user.getHoVaTen()
+                    "admin", Map.of(
+                        "id", admin.getId(),
+                        "email", admin.getEmail(),
+                        "hoVaTen", admin.getHoVaTen(),
+                        "chucVu", admin.getChucVu(),
+                        "quyenHan", admin.getQuyenHan()
                     )
                 ));
             } else {
@@ -87,4 +88,21 @@ public class DangNhapController {
             return ResponseEntity.ok(Map.of("status", false, "message", "Token không hợp lệ hoặc đã hết hạn"));
         }
     }
-}
+    
+    // Management of admins - these should only be accessible to super admin
+    @GetMapping
+    public ResponseEntity<?> getAllAdmins() {
+        try {
+            List<Admin> admins = adminService.getAllAdmins();
+            return ResponseEntity.ok()
+                    .body(Map.of(
+                            "status", true,
+                            "message", "Lấy danh sách quản trị viên thành công",
+                            "data", admins));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("status", false, "message", e.getMessage()));
+        }
+    }
+    
+} 

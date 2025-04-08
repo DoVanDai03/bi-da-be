@@ -28,7 +28,12 @@ public class DangKyController {
         }
 
         try {
-            DangKyRequest dangKyRequest = new DangKyRequest(request.getEmail(), request.getPassword());
+            DangKyRequest dangKyRequest = new DangKyRequest();
+            dangKyRequest.setEmail(request.getEmail());
+            dangKyRequest.setPassword(request.getPassword());
+            dangKyRequest.setHoVaTen(request.getHoVaTen());
+            dangKyRequest.setSdt(request.getSdt());
+            
             String result = userService.dangKy(dangKyRequest);
             return ResponseEntity.ok(Map.of("status", true, "message", result));
         } catch (RuntimeException e) {

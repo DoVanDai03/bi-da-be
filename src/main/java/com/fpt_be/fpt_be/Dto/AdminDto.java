@@ -2,32 +2,30 @@ package com.fpt_be.fpt_be.Dto;
 
 import java.time.LocalDateTime;
 
-public class UserDto {
+public class AdminDto {
     private Long id;
     private String email;
     private String password;
     private String hoVaTen;
     private String sdt;
-    private String diaChi;
-    private LocalDateTime ngaySinh;
-    private String gioiTinh;
+    private String chucVu;
+    private String quyenHan;
     private LocalDateTime ngayTao;
     private LocalDateTime ngayCapNhat;
 
     // Default constructor
-    public UserDto() {
+    public AdminDto() {
     }
 
-    public UserDto(Long id, String email, String password, String hoVaTen, String sdt, String diaChi, 
-                  LocalDateTime ngaySinh, String gioiTinh, LocalDateTime ngayTao, LocalDateTime ngayCapNhat) {
+    public AdminDto(Long id, String email, String password, String hoVaTen, String sdt, String chucVu, 
+                  String quyenHan, LocalDateTime ngayTao, LocalDateTime ngayCapNhat) {
         this.id = id;
         this.email = email;
         this.password = password;
         this.hoVaTen = hoVaTen;
         this.sdt = sdt;
-        this.diaChi = diaChi;
-        this.ngaySinh = ngaySinh;
-        this.gioiTinh = gioiTinh;
+        this.chucVu = chucVu;
+        this.quyenHan = quyenHan;
         this.ngayTao = ngayTao;
         this.ngayCapNhat = ngayCapNhat;
     }
@@ -72,28 +70,20 @@ public class UserDto {
         this.sdt = sdt;
     }
 
-    public String getDiaChi() {
-        return diaChi;
+    public String getChucVu() {
+        return chucVu;
     }
 
-    public void setDiaChi(String diaChi) {
-        this.diaChi = diaChi;
+    public void setChucVu(String chucVu) {
+        this.chucVu = chucVu;
     }
 
-    public LocalDateTime getNgaySinh() {
-        return ngaySinh;
+    public String getQuyenHan() {
+        return quyenHan;
     }
 
-    public void setNgaySinh(LocalDateTime ngaySinh) {
-        this.ngaySinh = ngaySinh;
-    }
-
-    public String getGioiTinh() {
-        return gioiTinh;
-    }
-
-    public void setGioiTinh(String gioiTinh) {
-        this.gioiTinh = gioiTinh;
+    public void setQuyenHan(String quyenHan) {
+        this.quyenHan = quyenHan;
     }
 
     public LocalDateTime getNgayTao() {
@@ -111,4 +101,4 @@ public class UserDto {
     public void setNgayCapNhat(LocalDateTime ngayCapNhat) {
         this.ngayCapNhat = ngayCapNhat;
     }
-}
+} 
