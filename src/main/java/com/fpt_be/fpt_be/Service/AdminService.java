@@ -34,4 +34,9 @@ public class AdminService {
         return adminRepository.findAll();
     }
 
+    public Admin getAdminById(Long id) {
+        return adminRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy quản trị viên với id: " + id));
+    }
+
 } 

@@ -87,4 +87,67 @@ public class UserService {
         }
         userRepository.deleteById(id);
     }
+
+    public UserDto getUserProfile(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng với id: " + id));
+        
+        UserDto userDto = new UserDto();
+        userDto.setId(user.getId());
+        userDto.setEmail(user.getEmail());
+        userDto.setHoVaTen(user.getHoVaTen());
+        userDto.setSdt(user.getSdt());
+        userDto.setDiaChi(user.getDiaChi());
+        userDto.setNgaySinh(user.getNgaySinh());
+        userDto.setGioiTinh(user.getGioiTinh());
+        
+        return userDto;
+    }
+
+    public UserDto updateUserProfile(Long id, UserDto userDto) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng với id: " + id));
+        
+        if (userDto.getHoVaTen() != null) {
+            user.setHoVaTen(userDto.getHoVaTen());
+        }
+        if (userDto.getSdt() != null) {
+            user.setSdt(userDto.getSdt());
+        }
+        if (userDto.getDiaChi() != null) {
+            user.setDiaChi(userDto.getDiaChi());
+        }
+        if (userDto.getNgaySinh() != null) {
+            user.setNgaySinh(userDto.getNgaySinh());
+        }
+        if (userDto.getGioiTinh() != null) {
+            user.setGioiTinh(userDto.getGioiTinh());
+        }
+        
+        User updatedUser = userRepository.save(user);
+        
+        UserDto updatedUserDto = new UserDto();
+        updatedUserDto.setId(updatedUser.getId());
+        updatedUserDto.setEmail(updatedUser.getEmail());
+        updatedUserDto.setHoVaTen(updatedUser.getHoVaTen());
+        updatedUserDto.setSdt(updatedUser.getSdt());
+        updatedUserDto.setDiaChi(updatedUser.getDiaChi());
+        updatedUserDto.setNgaySinh(updatedUser.getNgaySinh());
+        updatedUserDto.setGioiTinh(updatedUser.getGioiTinh());
+        
+        return updatedUserDto;
+    }
+
+    public void changePassword(Long id, String currentPassword, String newPassword) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng với id: " + id));
+        
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new RuntimeException("Mật khẩu hiện tại không chính xác");
+        }
+        
+        String encodedNewPassword = passwordEncoder.encode(newPassword);
+        user.setPassword(encodedNewPassword);
+        userRepository.save(user);
+    }
 }
