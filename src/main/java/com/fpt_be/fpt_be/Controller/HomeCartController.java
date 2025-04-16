@@ -87,17 +87,4 @@ public class HomeCartController {
         }
     }
 
-    @PostMapping("/ap-dung-ma-giam-gia")
-    public ResponseEntity<?> applyDiscountCode(
-            @RequestParam Long idKhachHang,
-            @RequestParam String maGiamGia,
-            @RequestParam(required = false) Long idSanPham) {
-        try {
-            Map<String, Object> result = cartService.applyDiscountCode(idKhachHang, maGiamGia, idSanPham);
-            return ResponseEntity.ok(result);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("status", false, "message", e.getMessage()));
-        }
-    }
 }

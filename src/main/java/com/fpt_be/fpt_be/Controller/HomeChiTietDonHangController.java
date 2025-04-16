@@ -251,4 +251,26 @@ public class HomeChiTietDonHangController {
                     .body(Map.of("status", false, "message", e.getMessage()));
         }
     }
+
+    @PostMapping("/ap-dung-ma-giam-gia")
+    public ResponseEntity<?> applyDiscountCode(
+            @RequestParam String maGiamGia,
+            @RequestParam Double tongTien,
+            @RequestHeader("Authorization") String token) {
+        try {
+            // Kiểm tra token
+            if (token == null || !token.startsWith("Bearer ")) {
+                return ResponseEntity.status(401)
+                        .body(Map.of("status", false, "message", "Unauthorized - Token không hợp lệ"));
+            }
+
+            // Áp dụng mã giảm giá
+            Map<String, Object> result = cartService.applyDiscountCodeToOrder(null, maGiamGia, tongTien);
+            
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("status", false, "message", e.getMessage()));
+        }
+    }
 }

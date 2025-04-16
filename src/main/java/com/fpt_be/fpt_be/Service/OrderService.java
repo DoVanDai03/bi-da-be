@@ -15,6 +15,7 @@ import com.fpt_be.fpt_be.Dto.OrderDto;
 import com.fpt_be.fpt_be.Entity.Order;
 import com.fpt_be.fpt_be.Entity.OrderItem;
 import com.fpt_be.fpt_be.Repository.OrderRepository;
+import com.fpt_be.fpt_be.Repository.OrderItemRepository;
 
 @Service
 public class OrderService {
@@ -22,6 +23,10 @@ public class OrderService {
     @Autowired
     private OrderRepository orderRepository;
 
+    @Autowired
+    private OrderItemRepository orderItemRepository;
+
+    
 
     @Transactional(rollbackFor = Exception.class)
     public Order createOrder(OrderDto orderDto) {
@@ -35,6 +40,42 @@ public class OrderService {
                 throw new IllegalArgumentException("Chi tiết đơn hàng không được để trống");
             }
 
+            // Calculate total product price before discount
+            double totalProductPrice = 0.0;
+            for (com.fpt_be.fpt_be.Dto.OrderItemDto itemDto : orderDto.getChiTietDonHang()) {
+                totalProductPrice += itemDto.getGiaSanPham() * itemDto.getSoLuong();
+            }
+
+            // Calculate discount percentage from discount code
+            double discountPercentage = 0.0;
+            if (orderDto.getMaGiamGia() != null) {
+                switch (orderDto.getMaGiamGia()) {
+                    case "WELCOME10":
+                        discountPercentage = 10.0;
+                        break;
+                    case "SUMMER25":
+                        discountPercentage = 25.0;
+                        break;
+                    case "FREESHIP50":
+                        discountPercentage = 50.0;
+                        break;
+                    case "VIP30":
+                        discountPercentage = 30.0;
+                        break;
+                    case "FLASH15": 
+                        discountPercentage = 15.0;
+                        break;
+                }
+            }
+
+            // Calculate discount on product price
+            double discountAmount = (totalProductPrice * discountPercentage) / 100;
+            double totalAfterDiscount = totalProductPrice - discountAmount;
+
+            // Add shipping fee after discount
+            double shippingFee = 300000.0;
+            double finalTotal = totalAfterDiscount + shippingFee;
+
             // Create order
             Order order = new Order();
             order.setIdKhachHang(orderDto.getIdKhachHang());
@@ -45,7 +86,7 @@ public class OrderService {
             order.setMaGiamGia(orderDto.getMaGiamGia());
             order.setNgayDat(LocalDateTime.now());
             order.setTrangThai("pending");
-            order.setTongTien(orderDto.getTongTien());
+            order.setTongTien(finalTotal);
             
             // Save order
             Order savedOrder = orderRepository.save(order);
@@ -54,17 +95,21 @@ public class OrderService {
                 throw new RuntimeException("Không thể tạo đơn hàng");
             }
 
-            // // Create order items
-            // for (com.fpt_be.fpt_be.Dto.OrderItemDto itemDto : orderDto.getChiTietDonHang()) {
-            //     OrderItem orderItem = new OrderItem();
-            //     orderItem.setOrder(savedOrder);
-            //     orderItem.setProductId(itemDto.getProductId());
-            //     orderItem.setQuantity(itemDto.getQuantity());
-            //     orderItem.setPrice(itemDto.getPrice());
-            //     orderItem.setDiscount(itemDto.getDiscount());
-            //     orderItem.setTotalPrice(itemDto.getTotalPrice());
-            //     orderItemRepository.save(orderItem);
-            // }
+            // Create order items
+            for (com.fpt_be.fpt_be.Dto.OrderItemDto itemDto : orderDto.getChiTietDonHang()) {
+                OrderItem orderItem = new OrderItem();
+                orderItem.setOrder(savedOrder);
+                orderItem.setProductId(itemDto.getProductId());
+                orderItem.setQuantity(itemDto.getSoLuong());
+                orderItem.setPrice(itemDto.getGiaSanPham());
+                orderItem.setDiscount(discountPercentage); // Store the order's discount percentage
+                
+                // For single item, calculate its proportion of the final total (including shipping)
+                double itemRatio = (itemDto.getGiaSanPham() * itemDto.getSoLuong()) / totalProductPrice;
+                orderItem.setTotalPrice(finalTotal * itemRatio);
+                
+                orderItemRepository.save(orderItem);
+            }
             
             return savedOrder;
         } catch (Exception e) {
@@ -150,7 +195,7 @@ public class OrderService {
     public List<Map<String, Object>> getAllOrdersWithDetails() {
         List<Order> orders = orderRepository.findAll();
         List<Map<String, Object>> orderDetails = new ArrayList<>();
-        
+    
         for (Order order : orders) {
             Map<String, Object> orderDetail = new HashMap<>();
             orderDetail.put("id", order.getId());
@@ -164,11 +209,11 @@ public class OrderService {
             orderDetail.put("maGiamGia", order.getMaGiamGia());
             orderDetail.put("ngayDat", order.getNgayDat());
             orderDetail.put("ngayCapNhat", order.getNgayCapNhat());
-            
-            // Lấy chi tiết sản phẩm trong đơn hàng
-            List<OrderItem> orderItems = order.getChiTietDonHang();
+    
+            // Lấy chi tiết sản phẩm trong đơn hàng từ repository riêng
+            List<OrderItem> orderItems = orderItemRepository.findByOrderId(order.getId());
             List<Map<String, Object>> productDetails = new ArrayList<>();
-            
+    
             for (OrderItem item : orderItems) {
                 Map<String, Object> productDetail = new HashMap<>();
                 productDetail.put("id", item.getId());
@@ -179,13 +224,14 @@ public class OrderService {
                 productDetail.put("totalPrice", item.getTotalPrice());
                 productDetails.add(productDetail);
             }
-            
+    
             orderDetail.put("chiTietDonHang", productDetails);
             orderDetails.add(orderDetail);
         }
-        
+    
         return orderDetails;
     }
+    
 
     public Map<String, Object> canCustomerReviewProduct(Long customerId, Long productId) {
         try {

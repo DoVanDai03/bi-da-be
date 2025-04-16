@@ -92,4 +92,81 @@ public class HomeReviewController {
                     .body(Map.of("status", false, "message", e.getMessage()));
         }
     }
+
+    /**
+     * API cập nhật đánh giá (chỉ người tạo đánh giá mới được phép cập nhật)
+     */
+    @PutMapping("/{reviewId}")
+    public ResponseEntity<?> updateReview(
+            @PathVariable Long reviewId,
+            @RequestBody ReviewDto reviewDto) {
+        try {
+            // Kiểm tra xem đánh giá có tồn tại không và có thuộc về khách hàng này không
+            Review existingReview = reviewService.getReviewById(reviewId);
+            if (existingReview == null) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of(
+                                "status", false,
+                                "message", "Không tìm thấy đánh giá"));
+            }
+
+            // Kiểm tra quyền cập nhật (chỉ người tạo mới được cập nhật)
+            if (!existingReview.getUser().getId().equals(reviewDto.getIdKhachHang())) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of(
+                                "status", false,
+                                "message", "Bạn không có quyền cập nhật đánh giá này"));
+            }
+
+            // Cập nhật đánh giá
+            Review updatedReview = reviewService.updateReview(reviewId, reviewDto);
+            
+            return ResponseEntity.ok()
+                    .body(Map.of(
+                            "status", true,
+                            "message", "Cập nhật đánh giá thành công",
+                            "data", updatedReview));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("status", false, "message", e.getMessage()));
+        }
+    }
+
+    /**
+     * API xoá đánh giá (chỉ người tạo đánh giá mới được phép xoá)
+     */
+    @DeleteMapping("/{reviewId}")
+    public ResponseEntity<?> deleteReview(
+            @PathVariable Long reviewId,
+            @RequestParam Long idKhachHang) {
+        try {
+            // Kiểm tra xem đánh giá có tồn tại không và có thuộc về khách hàng này không
+            Review existingReview = reviewService.getReviewById(reviewId);
+            if (existingReview == null) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of(
+                                "status", false,
+                                "message", "Không tìm thấy đánh giá"));
+            }
+
+            // Kiểm tra quyền xoá (chỉ người tạo mới được xoá)
+            if (!existingReview.getUser().getId().equals(idKhachHang)) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of(
+                                "status", false,
+                                "message", "Bạn không có quyền xoá đánh giá này"));
+            }
+
+            // Xoá đánh giá
+            reviewService.deleteReview(reviewId);
+            
+            return ResponseEntity.ok()
+                    .body(Map.of(
+                            "status", true,
+                            "message", "Xoá đánh giá thành công"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("status", false, "message", e.getMessage()));
+        }
+    }
 }
