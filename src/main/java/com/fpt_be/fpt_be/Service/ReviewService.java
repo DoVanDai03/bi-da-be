@@ -1,9 +1,13 @@
 package com.fpt_be.fpt_be.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.fpt_be.fpt_be.Dto.ReviewDto;
@@ -100,5 +104,17 @@ public class ReviewService {
     }
     public List<Review> getReviewsForHomePage() {
         return reviewRepository.findByTrangThaiTrueOrderByNgayDanhGiaDesc();
+    }
+
+    public Map<String, Object> getReviewsByProduct(Long idSanPham, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Review> reviewPage = reviewRepository.findByProductIdOrderByNgayDanhGiaDesc(idSanPham, pageable);
+        
+        return Map.of(
+            "reviews", reviewPage.getContent(),
+            "currentPage", page,
+            "totalItems", reviewPage.getTotalElements(),
+            "totalPages", reviewPage.getTotalPages()
+        );
     }
 } 

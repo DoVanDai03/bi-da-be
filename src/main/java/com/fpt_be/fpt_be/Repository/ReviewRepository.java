@@ -1,5 +1,7 @@
 package com.fpt_be.fpt_be.Repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -41,5 +43,10 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
            "ORDER BY r.ngayDanhGia DESC")
     List<Review> findByTrangThaiTrueOrderByNgayDanhGiaDesc();
     
-
+    @Query("SELECT r FROM Review r " +
+           "JOIN FETCH r.user u " +
+           "JOIN FETCH r.product p " +
+           "WHERE r.product.id = :productId " +
+           "ORDER BY r.ngayDanhGia DESC")
+    Page<Review> findByProductIdOrderByNgayDanhGiaDesc(@Param("productId") Long productId, Pageable pageable);
 } 

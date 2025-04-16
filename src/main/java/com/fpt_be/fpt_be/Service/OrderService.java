@@ -186,4 +186,48 @@ public class OrderService {
         
         return orderDetails;
     }
+
+    public Map<String, Object> canCustomerReviewProduct(Long customerId, Long productId) {
+        try {
+            // Bước 1: Kiểm tra xem khách hàng có đơn hàng nào không
+            List<Order> customerOrders = orderRepository.findByIdKhachHang(customerId);
+            if (customerOrders == null || customerOrders.isEmpty()) {
+                return Map.of(
+                    "canReview", false,
+                    "message", "Bạn chưa có đơn hàng nào"
+                );
+            }
+
+            // Bước 2: Kiểm tra xem trong đơn hàng có sản phẩm cần đánh giá không
+            List<Order> ordersWithProduct = orderRepository.findOrdersByCustomerAndProduct(customerId, productId);
+            if (ordersWithProduct == null || ordersWithProduct.isEmpty()) {
+                return Map.of(
+                    "canReview", false,
+                    "message", "Bạn chưa mua sản phẩm này nên không thể đánh giá"
+                );
+            }
+
+            // Bước 3: Kiểm tra xem có đơn hàng nào đã completed chứa sản phẩm này không
+            List<Order> completedOrders = orderRepository.findCompletedOrdersByCustomerAndProduct(customerId, productId);
+            if (completedOrders == null || completedOrders.isEmpty()) {
+                return Map.of(
+                    "canReview", false,
+                    "message", "Bạn cần đợi đơn hàng được giao thành công mới có thể đánh giá"
+                );
+            }
+
+            // Tất cả điều kiện đã thỏa mãn
+            return Map.of(
+                "canReview", true,
+                "message", "Bạn có thể đánh giá sản phẩm này"
+            );
+
+        } catch (Exception e) {
+            System.out.println("Lỗi khi kiểm tra quyền đánh giá: " + e.getMessage());
+            return Map.of(
+                "canReview", false,
+                "message", "Có lỗi xảy ra khi kiểm tra quyền đánh giá"
+            );
+        }
+    }
 }

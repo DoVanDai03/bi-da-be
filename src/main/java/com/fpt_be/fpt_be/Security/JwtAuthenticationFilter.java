@@ -26,7 +26,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         "/api/dang-ky", 
         "/api/kiem-tra-token",
         "/api/admin/dang-nhap",
-        "/api/admin/kiem-tra-token"
+        "/api/admin/kiem-tra-token",
+        "/api/quen-mat-khau"
     );
 
     public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider) {

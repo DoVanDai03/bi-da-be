@@ -22,6 +22,22 @@ public class PaymentService {
         payment.setSoTien(paymentDto.getSoTien());
         payment.setPhuongThucThanhToan(paymentDto.getPhuongThucThanhToan());
         payment.setTrangThai("pending");
+
+        // Set VNPay information if available
+        payment.setVnp_BankCode(paymentDto.getVnp_BankCode());
+        payment.setVnp_BankTranNo(paymentDto.getVnp_BankTranNo());
+        payment.setVnp_CardType(paymentDto.getVnp_CardType());
+        payment.setVnp_OrderInfo(paymentDto.getVnp_OrderInfo());
+        payment.setVnp_TransactionNo(paymentDto.getVnp_TransactionNo());
+        payment.setVnp_TransactionStatus(paymentDto.getVnp_TransactionStatus());
+        payment.setVnp_SecureHash(paymentDto.getVnp_SecureHash());
+        payment.setVnp_ResponseCode(paymentDto.getVnp_ResponseCode());
+        payment.setVnp_PayDate(paymentDto.getVnp_PayDate());
+        payment.setVnp_TmnCode(paymentDto.getVnp_TmnCode());
+        payment.setVnp_TransactionType(paymentDto.getVnp_TransactionType());
+        payment.setVnp_TxnRef(paymentDto.getVnp_TxnRef());
+        payment.setVnp_Amount(paymentDto.getVnp_Amount());
+
         return paymentRepository.save(payment);
     }
 

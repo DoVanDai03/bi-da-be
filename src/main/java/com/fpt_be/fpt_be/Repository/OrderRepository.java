@@ -13,6 +13,25 @@ import java.time.LocalDateTime;
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findByIdKhachHang(Long idKhachHang);
+    
+    @Query("SELECT DISTINCT o FROM Order o " +
+           "INNER JOIN o.chiTietDonHang oi " +
+           "WHERE o.idKhachHang = :idKhachHang " +
+           "AND oi.productId = :productId")
+    List<Order> findOrdersByCustomerAndProduct(
+        @Param("idKhachHang") Long idKhachHang,
+        @Param("productId") Long productId
+    );
+    
+    @Query("SELECT DISTINCT o FROM Order o " +
+           "INNER JOIN o.chiTietDonHang oi " +
+           "WHERE o.idKhachHang = :idKhachHang " +
+           "AND oi.productId = :productId " +
+           "AND o.trangThai = 'completed'")
+    List<Order> findCompletedOrdersByCustomerAndProduct(
+        @Param("idKhachHang") Long idKhachHang,
+        @Param("productId") Long productId
+    );
 
     @Query("SELECT COUNT(o) FROM Order o WHERE o.trangThai = :status AND o.ngayTao BETWEEN :startDate AND :endDate")
     int countByStatusAndCreatedAtBetween(@Param("status") String status, 

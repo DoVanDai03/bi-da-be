@@ -163,4 +163,21 @@ public class ProductService {
     public long countSearchResults(String keyword) {
         return productRepository.countSearchResults(keyword);
     }
+
+    /**
+     * Cập nhật số lượng tồn kho sau khi đặt hàng
+     */
+    public Product updateProductInventory(Long id, int soLuongDat) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với id: " + id));
+
+        int soLuongTonKhoMoi = product.getSoLuongTonKho() - soLuongDat;
+        
+        if (soLuongTonKhoMoi < 0) {
+            throw new RuntimeException("Số lượng đặt vượt quá số lượng tồn kho hiện có");
+        }
+        
+        product.setSoLuongTonKho(soLuongTonKhoMoi);
+        return productRepository.save(product);
+    }
 } 

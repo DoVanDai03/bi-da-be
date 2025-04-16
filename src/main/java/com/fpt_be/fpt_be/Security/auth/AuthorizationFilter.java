@@ -85,6 +85,7 @@ public class AuthorizationFilter extends OncePerRequestFilter {
         if (path.startsWith("/api/dang-nhap") || 
             path.startsWith("/api/admin/dang-nhap") || 
             path.startsWith("/api/dang-ky") || 
+            path.startsWith("/api/quen-mat-khau") ||
             path.startsWith("/api/kiem-tra-token") ||
             path.startsWith("/api/admin/dang-xuat") ||  // Thêm endpoint đăng xuất admin
             path.startsWith("/api/admin/kiem-tra-token") ||

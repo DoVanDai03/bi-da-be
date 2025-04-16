@@ -128,4 +128,31 @@ public class HomeProductController {
                     .body(Map.of("status", false, "message", e.getMessage()));
         }
     }
+
+    /**
+     * API cập nhật số lượng hàng tồn kho sau khi đặt hàng
+     */
+    @PutMapping("/san-pham/{id}/cap-nhat-ton-kho")
+    public ResponseEntity<?> updateProductInventory(
+            @PathVariable Long id,
+            @RequestParam int soLuongDat) {
+        try {
+            if (soLuongDat <= 0) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("status", false, "message", "Số lượng đặt phải lớn hơn 0"));
+            }
+
+            Product updatedProduct = productService.updateProductInventory(id, soLuongDat);
+            
+            return ResponseEntity.ok()
+                    .body(Map.of(
+                            "status", true,
+                            "message", "Cập nhật số lượng tồn kho thành công",
+                            "data", updatedProduct
+                    ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("status", false, "message", e.getMessage()));
+        }
+    }
 } 
