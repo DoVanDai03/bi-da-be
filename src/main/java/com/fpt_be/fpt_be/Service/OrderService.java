@@ -531,8 +531,8 @@ public class OrderService {
         return response;
     }
 
-    public Map<String, String> processVNPayPaymentReturn(Map<String, String> vnpParams) {
-        Map<String, String> response = new HashMap<>();
+    public Map<String, Object> processVNPayPaymentReturn(Map<String, String> vnpParams) {
+        Map<String, Object> response = new HashMap<>();
         
         try {
             // Remove hash from params to verify
@@ -567,27 +567,63 @@ public class OrderService {
             
             if (checkSum.equals(vnp_SecureHash)) {
                 String vnp_ResponseCode = vnpParams.get("vnp_ResponseCode");
+                String[] orderInfo = vnpParams.get("vnp_TxnRef").split("-");
+                Long orderId = Long.parseLong(orderInfo[0]);
+
                 if ("00".equals(vnp_ResponseCode)) {
-                    // Payment successful
-                    String[] orderInfo = vnpParams.get("vnp_TxnRef").split("-");
-                    Long orderId = Long.parseLong(orderInfo[0]);
-                    
                     // Update order payment status
                     Order order = updatePaymentStatus(orderId);
                     
-                    response.put("status", "00");
+                    // Get order details
+                    List<CartWithProductDto> orderItems = cartService.getCartsWithProductInfoByOrderId(orderId);
+                    
+                    // Build payment info response
+                    Map<String, Object> paymentInfo = new HashMap<>();
+                    paymentInfo.put("vnp_Amount", vnpParams.get("vnp_Amount"));
+                    paymentInfo.put("vnp_BankCode", vnpParams.get("vnp_BankCode"));
+                    paymentInfo.put("vnp_BankTranNo", vnpParams.get("vnp_BankTranNo"));
+                    paymentInfo.put("vnp_CardType", vnpParams.get("vnp_CardType"));
+                    paymentInfo.put("vnp_OrderInfo", vnpParams.get("vnp_OrderInfo"));
+                    paymentInfo.put("vnp_PayDate", vnpParams.get("vnp_PayDate"));
+                    paymentInfo.put("vnp_ResponseCode", vnp_ResponseCode);
+                    paymentInfo.put("vnp_TransactionNo", vnpParams.get("vnp_TransactionNo"));
+                    paymentInfo.put("vnp_TxnRef", vnpParams.get("vnp_TxnRef"));
+
+                    // Add order details
+                    Map<String, Object> orderDetails = new HashMap<>();
+                    orderDetails.put("id", order.getId());
+                    orderDetails.put("tongTien", order.getTongTien());
+                    orderDetails.put("trangThai", order.getTrangThai());
+                    orderDetails.put("trangThaiThanhToan", "DA_THANH_TOAN");
+                    orderDetails.put("phuongThucThanhToan", "VNPAY");
+                    orderDetails.put("ngayThanhToan", order.getNgayCapNhat());
+                    
+                    // Combine all information
+                    response.put("status", true);
                     response.put("message", "Thanh toán thành công");
+                    response.put("data", Map.of(
+                        "paymentInfo", paymentInfo,
+                        "orderDetails", orderDetails
+                    ));
                 } else {
-                    response.put("status", "01");
+                    response.put("status", false);
                     response.put("message", "Thanh toán thất bại");
+                    response.put("data", Map.of(
+                        "vnp_ResponseCode", vnp_ResponseCode,
+                        "vnp_TransactionNo", vnpParams.get("vnp_TransactionNo"),
+                        "vnp_OrderInfo", vnpParams.get("vnp_OrderInfo"),
+                        "orderId", orderId
+                    ));
                 }
             } else {
-                response.put("status", "97");
-                response.put("message", "Invalid checksum");
+                response.put("status", false);
+                response.put("message", "Chữ ký không hợp lệ");
+                response.put("data", null);
             }
         } catch (Exception e) {
-            response.put("status", "99");
-            response.put("message", "Unknown error: " + e.getMessage());
+            response.put("status", false);
+            response.put("message", "Lỗi xử lý thanh toán: " + e.getMessage());
+            response.put("data", null);
         }
         
         return response;

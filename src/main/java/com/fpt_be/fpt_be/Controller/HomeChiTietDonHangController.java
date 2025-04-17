@@ -17,9 +17,11 @@ import com.fpt_be.fpt_be.Service.OrderService;
 import com.fpt_be.fpt_be.Entity.Order;
 import com.fpt_be.fpt_be.Entity.Cart;
 import com.fpt_be.fpt_be.Repository.CartRepository;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 @RestController
 @RequestMapping("/api/user/chi-tiet-don-hang")
+@CrossOrigin(origins = "http://localhost:5173", allowCredentials = "true")
 public class HomeChiTietDonHangController {
     
     @Autowired
@@ -353,22 +355,16 @@ public class HomeChiTietDonHangController {
     @GetMapping("/vnpay-payment")
     public ResponseEntity<?> processVNPayReturn(@RequestParam Map<String, String> queryParams) {
         try {
-            Map<String, String> response = orderService.processVNPayPaymentReturn(queryParams);
+            Map<String, Object> response = orderService.processVNPayPaymentReturn(queryParams);
             
-            if ("00".equals(response.get("status"))) {
-                return ResponseEntity.ok()
-                        .body(Map.of(
-                                "status", true,
-                                "message", response.get("message")));
-            } else {
-                return ResponseEntity.badRequest()
-                        .body(Map.of(
-                                "status", false,
-                                "message", response.get("message")));
-            }
+            return ResponseEntity.ok()
+                    .body(response);
         } catch (Exception e) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("status", false, "message", e.getMessage()));
+            return ResponseEntity.ok()
+                    .body(Map.of(
+                            "status", false, 
+                            "message", e.getMessage(),
+                            "data", null));
         }
     }
 }
