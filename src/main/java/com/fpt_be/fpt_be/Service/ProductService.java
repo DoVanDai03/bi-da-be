@@ -44,6 +44,9 @@ public class ProductService {
     public Product createProduct(ProductDto productDto) {
         Product product = new Product();
         product.setTenSanPham(productDto.getTenSanPham());
+        product.setMaSanPham(productDto.getMaSanPham());
+        product.setXuatXu(productDto.getXuatXu());
+        product.setBaoHanh(productDto.getBaoHanh());
         product.setGiaSanPham(productDto.getGiaSanPham());
         product.setSoLuongTonKho(productDto.getSoLuongTonKho());
         product.setKichCo(productDto.getKichCo());
@@ -86,6 +89,9 @@ public class ProductService {
         if (existingProduct.isPresent()) {
             Product product = existingProduct.get();
             product.setTenSanPham(productDto.getTenSanPham());
+            product.setMaSanPham(productDto.getMaSanPham());
+            product.setXuatXu(productDto.getXuatXu());
+            product.setBaoHanh(productDto.getBaoHanh());
             product.setGiaSanPham(productDto.getGiaSanPham());
             product.setSoLuongTonKho(productDto.getSoLuongTonKho());
             product.setKichCo(productDto.getKichCo());

@@ -19,6 +19,15 @@ public class Product {
     @Column(name = "ten_san_pham")
     private String tenSanPham;
     
+    @Column(name = "ma_san_pham", unique = true)
+    private String maSanPham;
+    
+    @Column(name = "xuat_xu")
+    private String xuatXu;
+    
+    @Column(name = "bao_hanh")
+    private String baoHanh;
+    
     @ManyToOne
     @JoinColumn(name = "id_danh_muc")
     private Category danhMuc;
