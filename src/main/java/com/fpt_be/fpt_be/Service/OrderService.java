@@ -18,6 +18,9 @@ import com.fpt_be.fpt_be.Repository.OrderRepository;
 import com.fpt_be.fpt_be.Repository.OrderItemRepository;
 import com.fpt_be.fpt_be.Dto.CartWithProductDto;
 import com.fpt_be.fpt_be.Service.CartService;
+import com.fpt_be.fpt_be.Entity.Product;
+import com.fpt_be.fpt_be.Dto.ProductDto;
+import com.fpt_be.fpt_be.Service.ProductService;
 
 @Service
 public class OrderService {
@@ -30,6 +33,25 @@ public class OrderService {
 
     @Autowired
     private CartService cartService;
+
+    @Autowired
+    private ProductService productService;
+
+    /**
+     * Cập nhật số lượng tồn kho khi đơn hàng có trạng thái pending
+     */
+    private void updateProductInventoryForPendingOrder(Order order) {
+        if (order != null && "pending".equals(order.getTrangThai())) {
+            for (OrderItem item : order.getChiTietDonHang()) {
+                try {
+                    productService.updateProductInventory(item.getProductId(), item.getQuantity());
+                } catch (Exception e) {
+                    throw new RuntimeException("Lỗi khi cập nhật số lượng tồn kho cho sản phẩm ID " + 
+                        item.getProductId() + ": " + e.getMessage());
+                }
+            }
+        }
+    }
 
     @Transactional(rollbackFor = Exception.class)
     public Order createOrder(OrderDto orderDto) {
@@ -99,20 +121,25 @@ public class OrderService {
             }
 
             // Create order items
+            List<OrderItem> orderItems = new ArrayList<>();
             for (com.fpt_be.fpt_be.Dto.OrderItemDto itemDto : orderDto.getChiTietDonHang()) {
                 OrderItem orderItem = new OrderItem();
                 orderItem.setOrder(savedOrder);
                 orderItem.setProductId(itemDto.getProductId());
                 orderItem.setQuantity(itemDto.getSoLuong());
                 orderItem.setPrice(itemDto.getGiaSanPham());
-                orderItem.setDiscount(discountPercentage); // Store the order's discount percentage
+                orderItem.setDiscount(discountPercentage);
                 
-                // For single item, calculate its proportion of the final total (including shipping)
                 double itemRatio = (itemDto.getGiaSanPham() * itemDto.getSoLuong()) / totalProductPrice;
                 orderItem.setTotalPrice(finalTotal * itemRatio);
                 
-                orderItemRepository.save(orderItem);
+                orderItems.add(orderItemRepository.save(orderItem));
             }
+            
+            savedOrder.setChiTietDonHang(orderItems);
+            
+            // Update product inventory for pending order
+            updateProductInventoryForPendingOrder(savedOrder);
             
             return savedOrder;
         } catch (Exception e) {
@@ -165,9 +192,28 @@ public class OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng với id: " + orderId));
         
+        String oldStatus = order.getTrangThai();
+        
         // Kiểm tra trạng thái hợp lệ
         if (!isValidOrderStatus(newStatus)) {
             throw new RuntimeException("Trạng thái đơn hàng không hợp lệ: " + newStatus);
+        }
+        
+        // Nếu đơn hàng bị hủy hoặc hoàn trả, hoàn lại số lượng tồn kho
+        if (("cancelled".equals(newStatus) || "returned".equals(newStatus)) && 
+            "pending".equals(oldStatus)) {
+            for (OrderItem item : order.getChiTietDonHang()) {
+                try {
+                    // Hoàn lại số lượng bằng cách thêm số lượng đã đặt
+                    Product product = productService.getProductById(item.getProductId());
+                    int newInventory = product.getSoLuongTonKho() + item.getQuantity();
+                    product.setSoLuongTonKho(newInventory);
+                    productService.updateProduct(product.getId(), convertToProductDto(product));
+                } catch (Exception e) {
+                    throw new RuntimeException("Lỗi khi hoàn lại số lượng tồn kho cho sản phẩm ID " + 
+                        item.getProductId() + ": " + e.getMessage());
+                }
+            }
         }
         
         order.setTrangThai(newStatus);
@@ -363,5 +409,31 @@ public class OrderService {
         } catch (Exception e) {
             throw new RuntimeException("Lỗi khi cập nhật trạng thái thanh toán: " + e.getMessage());
         }
+    }
+
+    private ProductDto convertToProductDto(Product product) {
+        ProductDto dto = new ProductDto();
+        dto.setTenSanPham(product.getTenSanPham());
+        dto.setGiaSanPham(product.getGiaSanPham());
+        dto.setSoLuongTonKho(product.getSoLuongTonKho());
+        dto.setKichCo(product.getKichCo());
+        dto.setMauSac(product.getMauSac());
+        dto.setChatLieu(product.getChatLieu());
+        dto.setMoTa(product.getMoTa());
+        dto.setHinhAnh(product.getHinhAnh());
+        dto.setTrangThai(product.getTrangThai());
+        if (product.getDanhMuc() != null) {
+            dto.setIdDanhMuc(product.getDanhMuc().getId());
+        }
+        if (product.getThuongHieu() != null) {
+            dto.setIdThuongHieu(product.getThuongHieu().getId());
+        }
+        if (product.getGiamGia() != null) {
+            dto.setIdGiamGia(product.getGiamGia().getId());
+        }
+        if (product.getNhaCungCap() != null) {
+            dto.setIdNhaCungCap(product.getNhaCungCap().getId());
+        }
+        return dto;
     }
 }
