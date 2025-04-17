@@ -104,5 +104,63 @@ public class AdminController {
                     .body(Map.of("status", false, "message", e.getMessage()));
         }
     }
-    
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getAdminById(@PathVariable Long id) {
+        try {
+            Admin admin = adminService.getAdminById(id);
+            return ResponseEntity.ok()
+                    .body(Map.of(
+                            "status", true,
+                            "message", "Lấy thông tin quản trị viên thành công",
+                            "data", admin));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("status", false, "message", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/them-moi")
+    public ResponseEntity<?> createAdmin(@RequestBody AdminDto adminDto) {
+        try {
+            Admin createdAdmin = adminService.createAdmin(adminDto);
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(Map.of(
+                            "status", true,
+                            "message", "Thêm quản trị viên thành công",
+                            "data", createdAdmin));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("status", false, "message", e.getMessage()));
+        }
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateAdmin(@PathVariable Long id, @RequestBody AdminDto adminDto) {
+        try {
+            Admin updatedAdmin = adminService.updateAdmin(id, adminDto);
+            return ResponseEntity.ok()
+                    .body(Map.of(
+                            "status", true,
+                            "message", "Cập nhật thông tin quản trị viên thành công",
+                            "data", updatedAdmin));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("status", false, "message", e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteAdmin(@PathVariable Long id) {
+        try {
+            adminService.deleteAdmin(id);
+            return ResponseEntity.ok()
+                    .body(Map.of(
+                            "status", true,
+                            "message", "Xóa quản trị viên thành công"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("status", false, "message", e.getMessage()));
+        }
+    }
 } 

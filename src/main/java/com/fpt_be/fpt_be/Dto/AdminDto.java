@@ -10,6 +10,7 @@ public class AdminDto {
     private String sdt;
     private String chucVu;
     private String quyenHan;
+    private String tinhTrang;
     private LocalDateTime ngayTao;
     private LocalDateTime ngayCapNhat;
 
@@ -18,7 +19,7 @@ public class AdminDto {
     }
 
     public AdminDto(Long id, String email, String password, String hoVaTen, String sdt, String chucVu, 
-                  String quyenHan, LocalDateTime ngayTao, LocalDateTime ngayCapNhat) {
+                  String quyenHan, String tinhTrang, LocalDateTime ngayTao, LocalDateTime ngayCapNhat) {
         this.id = id;
         this.email = email;
         this.password = password;
@@ -26,6 +27,7 @@ public class AdminDto {
         this.sdt = sdt;
         this.chucVu = chucVu;
         this.quyenHan = quyenHan;
+        this.tinhTrang = tinhTrang;
         this.ngayTao = ngayTao;
         this.ngayCapNhat = ngayCapNhat;
     }
@@ -84,6 +86,14 @@ public class AdminDto {
 
     public void setQuyenHan(String quyenHan) {
         this.quyenHan = quyenHan;
+    }
+
+    public String getTinhTrang() {
+        return tinhTrang;
+    }
+
+    public void setTinhTrang(String tinhTrang) {
+        this.tinhTrang = tinhTrang;
     }
 
     public LocalDateTime getNgayTao() {

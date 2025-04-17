@@ -40,6 +40,9 @@ public class Admin {
 
     @Column(name = "quyen_han")
     private String quyenHan;
+
+    @Column(name = "tinh_trang")
+    private String tinhTrang;
     
     @Column(name = "ngay_tao")
     private LocalDateTime ngayTao;
@@ -51,6 +54,9 @@ public class Admin {
     protected void onCreate() {
         ngayTao = LocalDateTime.now();
         ngayCapNhat = LocalDateTime.now();
+        if (tinhTrang == null) {
+            tinhTrang = "Hoạt động"; // Default value when creating new admin
+        }
     }
 
     @PreUpdate
@@ -112,6 +118,14 @@ public class Admin {
     
     public void setQuyenHan(String quyenHan) {
         this.quyenHan = quyenHan;
+    }
+
+    public String getTinhTrang() {
+        return tinhTrang;
+    }
+
+    public void setTinhTrang(String tinhTrang) {
+        this.tinhTrang = tinhTrang;
     }
     
     public LocalDateTime getNgayTao() {
