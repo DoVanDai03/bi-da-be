@@ -48,4 +48,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     @Query("SELECT COALESCE(SUM(o.tongTien), 0) FROM Order o WHERE DATE(o.ngayTao) = :date")
     double sumRevenueByDate(@Param("date") LocalDate date);
+
+    @Query("UPDATE Order o SET o.trangThaiThanhToan = :paymentStatus WHERE o.id = :orderId")
+    void updatePaymentStatus(@Param("orderId") Long orderId, @Param("paymentStatus") String paymentStatus);
 }

@@ -51,6 +51,9 @@ public class Order {
     @Column(name = "trang_thai")
     private String trangThai;
     
+    @Column(name = "trang_thai_thanh_toan")
+    private String trangThaiThanhToan;
+    
     @Column(name = "ngay_tao")
     private LocalDateTime ngayTao;
     
@@ -73,6 +76,9 @@ public class Order {
         }
         if (trangThai == null) {
             trangThai = "pending";
+        }
+        if (trangThaiThanhToan == null) {
+            trangThaiThanhToan = "CHUA_THANH_TOAN";
         }
     }
 
@@ -152,6 +158,14 @@ public class Order {
 
     public void setTrangThai(String trangThai) {
         this.trangThai = trangThai;
+    }
+
+    public String getTrangThaiThanhToan() {
+        return trangThaiThanhToan;
+    }
+
+    public void setTrangThaiThanhToan(String trangThaiThanhToan) {
+        this.trangThaiThanhToan = trangThaiThanhToan;
     }
 
     public LocalDateTime getNgayTao() {

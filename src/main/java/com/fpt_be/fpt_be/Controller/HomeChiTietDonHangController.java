@@ -273,4 +273,49 @@ public class HomeChiTietDonHangController {
                     .body(Map.of("status", false, "message", e.getMessage()));
         }
     }
+
+    @GetMapping("/san-pham/{idDonHang}")
+    public ResponseEntity<?> getOrderProductDetails(@PathVariable Long idDonHang) {
+        try {
+            Map<String, Object> orderDetails = orderService.getOrderProductDetails(idDonHang);
+            return ResponseEntity.ok()
+                    .body(Map.of(
+                            "status", true,
+                            "message", "Lấy thông tin chi tiết sản phẩm trong đơn hàng thành công",
+                            "data", orderDetails));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("status", false, "message", e.getMessage()));
+        }
+    }
+
+    @PutMapping("/don-hang/{idDonHang}/thanh-toan")
+    public ResponseEntity<?> updatePaymentStatus(
+            @PathVariable Long idDonHang,
+            @RequestHeader("Authorization") String token) {
+        try {
+            // Kiểm tra token
+            if (token == null || !token.startsWith("Bearer ")) {
+                return ResponseEntity.status(401)
+                        .body(Map.of("status", false, "message", "Unauthorized - Token không hợp lệ"));
+            }
+
+            Order updatedOrder = orderService.updatePaymentStatus(idDonHang);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", true);
+            response.put("message", "Cập nhật trạng thái thanh toán thành công");
+            response.put("data", Map.of(
+                "id", updatedOrder.getId(),
+                "idKhachHang", updatedOrder.getIdKhachHang(),
+                "trangThaiThanhToan", "DA_THANH_TOAN",
+                "ngayCapNhat", updatedOrder.getNgayCapNhat()
+            ));
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("status", false, "message", e.getMessage()));
+        }
+    }
 }

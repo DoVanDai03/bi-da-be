@@ -16,6 +16,8 @@ import com.fpt_be.fpt_be.Entity.Order;
 import com.fpt_be.fpt_be.Entity.OrderItem;
 import com.fpt_be.fpt_be.Repository.OrderRepository;
 import com.fpt_be.fpt_be.Repository.OrderItemRepository;
+import com.fpt_be.fpt_be.Dto.CartWithProductDto;
+import com.fpt_be.fpt_be.Service.CartService;
 
 @Service
 public class OrderService {
@@ -26,7 +28,8 @@ public class OrderService {
     @Autowired
     private OrderItemRepository orderItemRepository;
 
-    
+    @Autowired
+    private CartService cartService;
 
     @Transactional(rollbackFor = Exception.class)
     public Order createOrder(OrderDto orderDto) {
@@ -274,6 +277,91 @@ public class OrderService {
                 "canReview", false,
                 "message", "Có lỗi xảy ra khi kiểm tra quyền đánh giá"
             );
+        }
+    }
+
+    public Map<String, Object> getOrderProductDetails(Long orderId) {
+        try {
+            // Get the order
+            Order order = getOrderById(orderId);
+            if (order == null) {
+                throw new RuntimeException("Không tìm thấy đơn hàng với id: " + orderId);
+            }
+
+            // Get order items with product details
+            List<CartWithProductDto> orderItems = cartService.getCartsWithProductInfoByOrderId(orderId);
+
+            // Create response object
+            Map<String, Object> response = new HashMap<>();
+            response.put("id", order.getId());
+            response.put("idKhachHang", order.getIdKhachHang());
+            response.put("tenNguoiNhan", order.getTenNguoiNhan());
+            response.put("sdtNguoiNhan", order.getSdtNguoiNhan());
+            response.put("diaChiGiao", order.getDiaChiGiao());
+            response.put("tongTien", order.getTongTien());
+            response.put("trangThai", order.getTrangThai());
+            response.put("phuongThucThanhToan", order.getPhuongThucThanhToan());
+            response.put("maGiamGia", order.getMaGiamGia());
+            response.put("ngayDat", order.getNgayDat());
+            response.put("ngayCapNhat", order.getNgayCapNhat());
+
+            // Add product details
+            List<Map<String, Object>> productDetails = new ArrayList<>();
+            for (CartWithProductDto item : orderItems) {
+                Map<String, Object> productDetail = new HashMap<>();
+                productDetail.put("id", item.getId());
+                productDetail.put("idSanPham", item.getIdSanPham());
+                productDetail.put("tenSanPham", item.getTenSanPham());
+                productDetail.put("giaSanPham", item.getGiaSanPham());
+                productDetail.put("soLuong", item.getSoLuong());
+                productDetail.put("thanhTien", item.getThanhTien());
+                productDetail.put("hinhAnh", item.getHinhAnh());
+                productDetail.put("kichCo", item.getKichCo());
+                productDetail.put("mauSac", item.getMauSac());
+                productDetail.put("chatLieu", item.getChatLieu());
+                
+                // Add category information if available
+                if (item.getIdDanhMuc() != null) {
+                    productDetail.put("idDanhMuc", item.getIdDanhMuc());
+                    productDetail.put("tenDanhMuc", item.getTenDanhMuc());
+                }
+                
+                // Add brand information if available
+                if (item.getIdThuongHieu() != null) {
+                    productDetail.put("idThuongHieu", item.getIdThuongHieu());
+                    productDetail.put("tenThuongHieu", item.getTenThuongHieu());
+                }
+                
+                // Add discount information if available
+                if (item.getIdGiamGia() != null) {
+                    productDetail.put("idGiamGia", item.getIdGiamGia());
+                    productDetail.put("phanTramGiamGia", item.getPhanTramGiamGia());
+                    productDetail.put("maGiamGia", item.getMaGiamGia());
+                }
+                
+                productDetails.add(productDetail);
+            }
+            response.put("chiTietSanPham", productDetails);
+
+            return response;
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi khi lấy thông tin chi tiết đơn hàng: " + e.getMessage());
+        }
+    }
+
+    @Transactional
+    public Order updatePaymentStatus(Long orderId) {
+        try {
+            Order order = orderRepository.findById(orderId)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng với id: " + orderId));
+
+            // Cập nhật trạng thái thanh toán
+            order.setTrangThaiThanhToan("DA_THANH_TOAN");
+            order.setNgayCapNhat(LocalDateTime.now());
+
+            return orderRepository.save(order);
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi khi cập nhật trạng thái thanh toán: " + e.getMessage());
         }
     }
 }
