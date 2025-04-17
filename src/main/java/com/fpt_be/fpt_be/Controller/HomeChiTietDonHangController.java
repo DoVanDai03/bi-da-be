@@ -318,4 +318,57 @@ public class HomeChiTietDonHangController {
                     .body(Map.of("status", false, "message", e.getMessage()));
         }
     }
+
+    @PostMapping("/create-vnpay-payment/{orderId}")
+    public ResponseEntity<?> createVNPayPayment(
+            @PathVariable Long orderId,
+            @RequestHeader("Authorization") String token) {
+        try {
+            // Kiểm tra token
+            if (token == null || !token.startsWith("Bearer ")) {
+                return ResponseEntity.status(401)
+                        .body(Map.of("status", false, "message", "Unauthorized - Token không hợp lệ"));
+            }
+
+            Map<String, String> paymentResponse = orderService.createVNPayPayment(orderId);
+            
+            if ("00".equals(paymentResponse.get("status"))) {
+                return ResponseEntity.ok()
+                        .body(Map.of(
+                                "status", true,
+                                "message", "Tạo URL thanh toán thành công",
+                                "data", Map.of("paymentUrl", paymentResponse.get("paymentUrl"))));
+            } else {
+                return ResponseEntity.badRequest()
+                        .body(Map.of(
+                                "status", false,
+                                "message", paymentResponse.get("message")));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("status", false, "message", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/vnpay-payment")
+    public ResponseEntity<?> processVNPayReturn(@RequestParam Map<String, String> queryParams) {
+        try {
+            Map<String, String> response = orderService.processVNPayPaymentReturn(queryParams);
+            
+            if ("00".equals(response.get("status"))) {
+                return ResponseEntity.ok()
+                        .body(Map.of(
+                                "status", true,
+                                "message", response.get("message")));
+            } else {
+                return ResponseEntity.badRequest()
+                        .body(Map.of(
+                                "status", false,
+                                "message", response.get("message")));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("status", false, "message", e.getMessage()));
+        }
+    }
 }
