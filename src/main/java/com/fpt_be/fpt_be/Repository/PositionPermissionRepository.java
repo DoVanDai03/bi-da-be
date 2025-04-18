@@ -10,6 +10,6 @@ import com.fpt_be.fpt_be.Entity.Position;
 @Repository
 public interface PositionPermissionRepository extends JpaRepository<PositionPermission, Long> {
     List<PositionPermission> findByPosition(Position position);
-    List<PositionPermission> findByPositionId(Long positionId);
-    void deleteByPositionId(Long positionId);
+    List<PositionPermission> findByPosition_Id(Long positionId);
+    void deleteByPosition_Id(Long positionId);
 } 

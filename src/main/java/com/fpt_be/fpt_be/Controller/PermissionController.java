@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.fpt_be.fpt_be.Service.PermissionService;
 import com.fpt_be.fpt_be.Service.PositionPermissionService;
@@ -101,15 +102,48 @@ public class PermissionController {
     @GetMapping("/chuc-vu/{positionId}")
     public ResponseEntity<?> getPermissionsByPosition(@PathVariable Long positionId) {
         try {
-            List<PositionPermission> permissions = positionPermissionService.getPermissionsByPosition(positionId);
+            if (positionId == null) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of(
+                                "status", false,
+                                "message", "ID chức vụ không được để trống"));
+            }
+
+            List<PositionPermission> positionPermissions = positionPermissionService.getPermissionsByPosition(positionId);
+            
+            // Chuyển đổi dữ liệu để trả về
+            List<Map<String, Object>> formattedPermissions = positionPermissions.stream()
+                .map(pp -> {
+                    Permission permission = pp.getPermission();
+                    return Map.of(
+                        "id", pp.getId(),
+                        "permission", Map.of(
+                            "id", permission.getId(),
+                            "maQuyen", permission.getMaQuyen(),
+                            "tenQuyen", permission.getTenQuyen(),
+                            "tinhTrang", permission.getTinhTrang()
+                        ),
+                        "tinhTrang", pp.getTinhTrang()
+                    );
+                })
+                .collect(Collectors.toList());
+            
             return ResponseEntity.ok()
                     .body(Map.of(
                             "status", true,
                             "message", "Lấy danh sách quyền của chức vụ thành công",
-                            "data", permissions));
-        } catch (Exception e) {
+                            "data", formattedPermissions));
+        } catch (RuntimeException e) {
             return ResponseEntity.badRequest()
-                    .body(Map.of("status", false, "message", e.getMessage()));
+                    .body(Map.of(
+                            "status", false,
+                            "message", e.getMessage()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "status", false,
+                            "message", "Lỗi hệ thống: " + e.getMessage()));
         }
     }
 
@@ -118,14 +152,38 @@ public class PermissionController {
             @PathVariable Long positionId,
             @RequestBody Set<Long> permissionIds) {
         try {
+            // Validate input
+            if (positionId == null || permissionIds == null) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of(
+                                "status", false,
+                                "message", "ID chức vụ và danh sách quyền không được để trống"));
+            }
+
             positionPermissionService.assignPermissionsToPosition(positionId, permissionIds);
+            
+            // Kiểm tra xem quyền đã được lưu thành công chưa
+            List<PositionPermission> savedPermissions = positionPermissionService.getPermissionsByPosition(positionId);
+            if (savedPermissions.size() != permissionIds.size()) {
+                throw new RuntimeException("Có lỗi khi lưu quyền vào database");
+            }
+
             return ResponseEntity.ok()
                     .body(Map.of(
                             "status", true,
-                            "message", "Phân quyền cho chức vụ thành công"));
-        } catch (Exception e) {
+                            "message", "Phân quyền cho chức vụ thành công",
+                            "data", savedPermissions));
+        } catch (RuntimeException e) {
             return ResponseEntity.badRequest()
-                    .body(Map.of("status", false, "message", e.getMessage()));
+                    .body(Map.of(
+                            "status", false,
+                            "message", e.getMessage()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "status", false,
+                            "message", "Lỗi hệ thống khi phân quyền: " + e.getMessage()));
         }
     }
 

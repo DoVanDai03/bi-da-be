@@ -28,36 +28,66 @@ public class PositionPermissionService {
     private PermissionRepository permissionRepository;
 
     public List<PositionPermission> getPermissionsByPosition(Long positionId) {
-        return positionPermissionRepository.findByPositionId(positionId);
+        if (positionId == null) {
+            throw new RuntimeException("ID chức vụ không được để trống");
+        }
+        
+        // Kiểm tra xem chức vụ có tồn tại không
+        if (!positionRepository.existsById(positionId)) {
+            throw new RuntimeException("Không tìm thấy chức vụ với id: " + positionId);
+        }
+        
+        List<PositionPermission> permissions = positionPermissionRepository.findByPosition_Id(positionId);
+        if (permissions == null) {
+            throw new RuntimeException("Lỗi khi lấy danh sách quyền");
+        }
+        
+        return permissions;
     }
 
     @Transactional
     public void assignPermissionsToPosition(Long positionId, Set<Long> permissionIds) {
-        Position position = positionRepository.findById(positionId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy chức vụ với id: " + positionId));
+        try {
+            // Validate input
+            if (positionId == null || permissionIds == null) {
+                throw new RuntimeException("ID chức vụ và danh sách quyền không được để trống");
+            }
 
-        // Xóa các quyền cũ
-        positionPermissionRepository.deleteByPositionId(positionId);
+            Position position = positionRepository.findById(positionId)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy chức vụ với id: " + positionId));
 
-        // Thêm các quyền mới
-        Set<PositionPermission> newPermissions = permissionIds.stream()
-                .map(permissionId -> {
-                    Permission permission = permissionRepository.findById(permissionId)
-                            .orElseThrow(() -> new RuntimeException("Không tìm thấy quyền với id: " + permissionId));
-                    
-                    PositionPermission positionPermission = new PositionPermission();
-                    positionPermission.setPosition(position);
-                    positionPermission.setPermission(permission);
-                    positionPermission.setTinhTrang(true);
-                    return positionPermission;
-                })
-                .collect(Collectors.toSet());
+            // Xóa các quyền cũ
+            List<PositionPermission> oldPermissions = positionPermissionRepository.findByPosition_Id(positionId);
+            if (!oldPermissions.isEmpty()) {
+                positionPermissionRepository.deleteAll(oldPermissions);
+                positionPermissionRepository.flush(); // Đảm bảo xóa được lưu vào DB
+            }
 
-        positionPermissionRepository.saveAll(newPermissions);
+            // Thêm các quyền mới
+            List<PositionPermission> newPermissions = permissionIds.stream()
+                    .map(permissionId -> {
+                        Permission permission = permissionRepository.findById(permissionId)
+                                .orElseThrow(() -> new RuntimeException("Không tìm thấy quyền với id: " + permissionId));
+                        
+                        PositionPermission positionPermission = new PositionPermission();
+                        positionPermission.setPosition(position);
+                        positionPermission.setPermission(permission);
+                        positionPermission.setTinhTrang(true);
+                        return positionPermission;
+                    })
+                    .collect(Collectors.toList());
+
+            // Lưu các quyền mới và đảm bảo được lưu vào DB
+            positionPermissionRepository.saveAll(newPermissions);
+            positionPermissionRepository.flush();
+            
+        } catch (Exception e) {
+            throw new RuntimeException("Lỗi khi phân quyền: " + e.getMessage());
+        }
     }
 
     public boolean hasPermission(Long positionId, String maQuyen) {
-        List<PositionPermission> permissions = positionPermissionRepository.findByPositionId(positionId);
+        List<PositionPermission> permissions = positionPermissionRepository.findByPosition_Id(positionId);
         return permissions.stream()
                 .anyMatch(pp -> pp.getPermission().getMaQuyen().equals(maQuyen) && 
                                pp.getTinhTrang() && 
@@ -65,7 +95,7 @@ public class PositionPermissionService {
     }
 
     public void removePermissionFromPosition(Long positionId, Long permissionId) {
-        List<PositionPermission> permissions = positionPermissionRepository.findByPositionId(positionId);
+        List<PositionPermission> permissions = positionPermissionRepository.findByPosition_Id(positionId);
         permissions.stream()
                 .filter(pp -> pp.getPermission().getId().equals(permissionId))
                 .findFirst()

@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 public class PositionPermissionDto {
     private Long id;
     private Long idChucVu;
-    private Long idQuyen;
+    private Long idChucNang;
     private Boolean tinhTrang;
     private LocalDateTime ngayTao;
     private LocalDateTime ngayCapNhat;

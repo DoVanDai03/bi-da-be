@@ -1,29 +1,32 @@
 package com.fpt_be.fpt_be.Entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import java.time.LocalDateTime;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Entity
 @Table(name = "position_permissions")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class PositionPermission {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
     
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_chuc_vu")
     @JsonBackReference
+    @EqualsAndHashCode.Exclude
     private Position position;
     
-    @ManyToOne
-    @JoinColumn(name = "id_quyen")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_chuc_nang")
+    @EqualsAndHashCode.Exclude
     private Permission permission;
     
     @Column(name = "tinh_trang")
@@ -48,4 +51,4 @@ public class PositionPermission {
     protected void onUpdate() {
         ngayCapNhat = LocalDateTime.now();
     }
-} 
+}
