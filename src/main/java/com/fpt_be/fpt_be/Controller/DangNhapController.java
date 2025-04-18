@@ -26,6 +26,7 @@ public class DangNhapController {
     @Autowired
     private JwtTokenProvider tokenProvider;
 
+
     @PostMapping("/dang-nhap")
     public ResponseEntity<?> dangNhap(@RequestBody UserDto request) {
         try {
@@ -56,8 +57,8 @@ public class DangNhapController {
         }
     }
 
-    @GetMapping("/kiem-tra-token")
-    public ResponseEntity<?> kiemTraToken(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+    @GetMapping("/user/kiem-tra-token")
+    public ResponseEntity<?> kiemTraUserToken(@RequestHeader(value = "Authorization", required = false) String authHeader) {
         try {
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
                 return ResponseEntity.ok(Map.of("status", false, "message", "Token không hợp lệ"));
@@ -87,4 +88,6 @@ public class DangNhapController {
             return ResponseEntity.ok(Map.of("status", false, "message", "Token không hợp lệ hoặc đã hết hạn"));
         }
     }
+
+    
 }

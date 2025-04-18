@@ -24,7 +24,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final List<String> excludedUrls = Arrays.asList(
         "/api/dang-nhap", 
         "/api/dang-ky", 
-        "/api/kiem-tra-token",
+        "/api/user/kiem-tra-token",
         "/api/admin/dang-nhap",
         "/api/admin/kiem-tra-token",
         "/api/quen-mat-khau"

@@ -8,10 +8,12 @@ import java.util.Set;
 import java.util.List;
 import java.util.Arrays;
 import java.util.stream.Collectors;
+import java.util.HashSet;
 
 import com.fpt_be.fpt_be.Entity.Admin;
 import com.fpt_be.fpt_be.Entity.Position;
 import com.fpt_be.fpt_be.Entity.Permission;
+import com.fpt_be.fpt_be.Entity.PositionPermission;
 import com.fpt_be.fpt_be.Repository.AdminRepository;
 import com.fpt_be.fpt_be.Repository.PositionRepository;
 import com.fpt_be.fpt_be.Repository.PermissionRepository;
@@ -65,6 +67,9 @@ public class DataInitializer implements CommandLineRunner {
             new String[]{"ADMIN_CREATE", "Thêm mới admin"},
             new String[]{"ADMIN_UPDATE", "Cập nhật admin"},
             new String[]{"ADMIN_DELETE", "Xóa admin"},
+            new String[]{"ADMIN_DETAIL", "Xem chi tiết admin"},
+
+            
             
             // Quản lý sản phẩm
             new String[]{"PRODUCT_VIEW", "Xem danh sách sản phẩm"},
@@ -96,10 +101,10 @@ public class DataInitializer implements CommandLineRunner {
             new String[]{"PERMISSION_ASSIGN", "Phân quyền cho chức vụ"},
             
             // Quản lý chức vụ
-            new String[]{"POSITION_VIEW", "Xem danh sách chức vụ"},
-            new String[]{"POSITION_CREATE", "Thêm mới chức vụ"},
-            new String[]{"POSITION_UPDATE", "Cập nhật chức vụ"},
-            new String[]{"POSITION_DELETE", "Xóa chức vụ"},
+            new String[]{"CHUC_VU_VIEW", "Xem danh sách chức vụ"},
+            new String[]{"CHUC_VU_CREATE", "Thêm mới chức vụ"},
+            new String[]{"CHUC_VU_UPDATE", "Cập nhật chức vụ"},
+            new String[]{"CHUC_VU_DELETE", "Xóa chức vụ"},
             
             // Quản lý nhà cung cấp
             new String[]{"SUPPLIER_VIEW", "Xem danh sách nhà cung cấp"},
@@ -120,10 +125,24 @@ public class DataInitializer implements CommandLineRunner {
             new String[]{"REVIEW_DELETE", "Xóa đánh giá"},
             
             // Thống kê
-            new String[]{"STATISTICS_VIEW", "Xem thống kê"}
+            new String[]{"STATISTICS_VIEW", "Xem thống kê"},
+
+            // Quản lý khách hàng
+            new String[]{"CUSTOMER_VIEW", "Xem danh sách khách hàng"},
+            new String[]{"CUSTOMER_CREATE", "Thêm mới khách hàng"},
+            new String[]{"CUSTOMER_UPDATE", "Cập nhật khách hàng"},
+            new String[]{"CUSTOMER_DELETE", "Xóa khách hàng"},
+
+            //Quyền truy cập
+            new String[]{"ACCESS_VIEW", "Xem danh sách quyền truy cập"},
+            new String[]{"ACCESS_CREATE", "Thêm mới quyền truy cập"},
+            new String[]{"ACCESS_UPDATE", "Cập nhật quyền truy cập"},
+            new String[]{"ACCESS_DELETE", "Xóa quyền truy cập"}
+            
+            
         );
         
-        // Tạo các quyền mặc định nếu chưa tồn tại
+        // Chỉ tạo các quyền chưa tồn tại
         for (String[] permissionInfo : defaultPermissions) {
             String maQuyen = permissionInfo[0];
             String tenQuyen = permissionInfo[1];
@@ -133,7 +152,7 @@ public class DataInitializer implements CommandLineRunner {
                 permission.setMaQuyen(maQuyen);
                 permission.setTenQuyen(tenQuyen);
                 permissionRepository.save(permission);
-                System.out.println("Đã tạo quyền: " + maQuyen + " - " + tenQuyen);
+                System.out.println("Đã tạo quyền mới: " + maQuyen + " - " + tenQuyen);
             }
         }
     }
@@ -143,7 +162,7 @@ public class DataInitializer implements CommandLineRunner {
         Position superAdminPosition = positionRepository.findFirstByTenChucVu("Super Admin");
         if (superAdminPosition == null) {
             superAdminPosition = new Position();
-            superAdminPosition.setId(1L); // Set ID to 1
+            superAdminPosition.setId(1L);
             superAdminPosition.setTenChucVu("Super Admin");
             superAdminPosition.setTinhTrang(true);
             superAdminPosition = positionRepository.save(superAdminPosition);
@@ -156,15 +175,29 @@ public class DataInitializer implements CommandLineRunner {
             
             // Gán tất cả quyền cho Super Admin
             positionPermissionService.assignPermissionsToPosition(superAdminPosition.getId(), permissionIds);
+            System.out.println("Đã tạo chức vụ Super Admin và gán tất cả quyền");
         } else {
-            // Nếu Super Admin đã tồn tại, đảm bảo có tất cả các quyền
+            // Nếu Super Admin đã tồn tại, chỉ gán thêm các quyền còn thiếu
             List<Permission> allPermissions = permissionRepository.findAll();
-            Set<Long> permissionIds = allPermissions.stream()
+            Set<Long> allPermissionIds = allPermissions.stream()
                 .map(Permission::getId)
                 .collect(Collectors.toSet());
             
-            // Gán lại tất cả quyền cho Super Admin
-            positionPermissionService.assignPermissionsToPosition(superAdminPosition.getId(), permissionIds);
+            // Lấy danh sách quyền hiện tại của Super Admin
+            List<PositionPermission> currentPermissions = positionPermissionService.getPermissionsByPosition(superAdminPosition.getId());
+            Set<Long> currentPermissionIds = currentPermissions.stream()
+                .map(pp -> pp.getPermission().getId())
+                .collect(Collectors.toSet());
+            
+            // Tìm các quyền còn thiếu
+            Set<Long> missingPermissionIds = new HashSet<>(allPermissionIds);
+            missingPermissionIds.removeAll(currentPermissionIds);
+            
+            // Chỉ gán thêm các quyền còn thiếu
+            if (!missingPermissionIds.isEmpty()) {
+                positionPermissionService.assignPermissionsToPosition(superAdminPosition.getId(), missingPermissionIds);
+                System.out.println("Đã gán thêm " + missingPermissionIds.size() + " quyền mới cho Super Admin");
+            }
         }
         return superAdminPosition;
     }

@@ -131,4 +131,19 @@ public class JwtTokenProvider {
         TokenType type = getTokenType(token);
         return type == TokenType.USER;
     }
+
+    public String getEmailFromToken(String token) {
+        try {
+            Claims claims = Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+            
+            return claims.get("email", String.class); // <-- đúng rồi nè
+        } catch (Exception e) {
+            return null;
+        }
+    }
+    
 } 

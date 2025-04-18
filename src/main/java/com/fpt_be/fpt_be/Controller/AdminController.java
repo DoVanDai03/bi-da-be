@@ -3,6 +3,7 @@ package com.fpt_be.fpt_be.Controller;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.HashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 
 import com.fpt_be.fpt_be.Dto.AdminDto;
 import com.fpt_be.fpt_be.Entity.Admin;
-import com.fpt_be.fpt_be.Entity.Permission;
 import com.fpt_be.fpt_be.Entity.PositionPermission;
 import com.fpt_be.fpt_be.Security.JwtTokenProvider;
 import com.fpt_be.fpt_be.Service.AdminService;
@@ -23,41 +23,40 @@ public class AdminController {
 
     @Autowired
     private AdminService adminService;
-    
+
     @Autowired
     private JwtTokenProvider tokenProvider;
-    
+
     @Autowired
     private PositionPermissionService positionPermissionService;
-    
+
     @PostMapping("/dang-nhap")
     public ResponseEntity<?> dangNhapAdmin(@RequestBody AdminDto request) {
         try {
             if (request.getEmail() == null || request.getPassword() == null) {
                 return ResponseEntity.badRequest()
-                    .body(Map.of("status", false, "message", "Email và mật khẩu không được để trống"));
+                        .body(Map.of("status", false, "message", "Email và mật khẩu không được để trống"));
             }
-            
+
             Admin admin = adminService.dangNhapAdmin(request.getEmail(), request.getPassword());
             String token = tokenProvider.generateAdminToken(admin.getId(), admin.getEmail());
-            
-            List<PositionPermission> permissions = positionPermissionService.getPermissionsByPosition(admin.getPosition().getId());
+
+            List<PositionPermission> permissions = positionPermissionService
+                    .getPermissionsByPosition(admin.getPosition().getId());
             List<String> quyenHan = permissions.stream()
-                .map(pp -> pp.getPermission().getMaQuyen())
-                .collect(Collectors.toList());
-            
+                    .map(pp -> pp.getPermission().getMaQuyen())
+                    .collect(Collectors.toList());
+
             return ResponseEntity.ok(Map.of(
-                "status", true, 
-                "message", "Đăng nhập thành công!", 
-                "token", token,
-                "admin", Map.of(
-                    "id", admin.getId(),
-                    "email", admin.getEmail(),
-                    "hoVaTen", admin.getHoVaTen(),
-                    "chucVu", admin.getPosition().getTenChucVu(),
-                    "quyenHan", quyenHan
-                )
-            ));
+                    "status", true,
+                    "message", "Đăng nhập thành công!",
+                    "token", token,
+                    "admin", Map.of(
+                            "id", admin.getId(),
+                            "email", admin.getEmail(),
+                            "hoVaTen", admin.getHoVaTen(),
+                            "chucVu", admin.getPosition().getTenChucVu(),
+                            "quyenHan", quyenHan)));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("status", false, "message", e.getMessage()));
@@ -66,9 +65,10 @@ public class AdminController {
                     .body(Map.of("status", false, "message", "Có lỗi xảy ra trong quá trình đăng nhập"));
         }
     }
-    
+
     @GetMapping("/kiem-tra-token")
-    public ResponseEntity<?> kiemTraToken(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+    public ResponseEntity<?> kiemTraAdminToken(
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
         try {
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
                 return ResponseEntity.ok(Map.of("status", false, "message", "Token không hợp lệ"));
@@ -77,28 +77,30 @@ public class AdminController {
             String token = authHeader.substring(7);
             if (tokenProvider.validateToken(token)) {
                 if (!tokenProvider.isAdminToken(token)) {
-                    return ResponseEntity.ok(Map.of("status", false, "message", "Token không có quyền admin"));
+                    return ResponseEntity.ok(Map.of("status", false, "message", "Token không phải của admin"));
                 }
-                
+
                 Long adminId = tokenProvider.getUserIdFromToken(token);
                 Admin admin = adminService.getAdminById(adminId);
                 
-                List<PositionPermission> permissions = positionPermissionService.getPermissionsByPosition(admin.getPosition().getId());
+                // Get permissions for the admin's position
+                List<PositionPermission> permissions = positionPermissionService
+                        .getPermissionsByPosition(admin.getPosition().getId());
                 List<String> quyenHan = permissions.stream()
-                    .map(pp -> pp.getPermission().getMaQuyen())
-                    .collect(Collectors.toList());
-                
+                        .map(pp -> pp.getPermission().getMaQuyen())
+                        .collect(Collectors.toList());
+
+                Map<String, Object> adminData = new HashMap<>();
+                adminData.put("id", admin.getId());
+                adminData.put("email", admin.getEmail());
+                adminData.put("hoVaTen", admin.getHoVaTen());
+                adminData.put("chucVu", admin.getPosition().getTenChucVu());
+                adminData.put("quyenHan", quyenHan);
+
                 return ResponseEntity.ok(Map.of(
-                    "status", true, 
-                    "message", "Token hợp lệ", 
-                    "admin", Map.of(
-                        "id", admin.getId(),
-                        "email", admin.getEmail(),
-                        "hoVaTen", admin.getHoVaTen(),
-                        "chucVu", admin.getPosition().getTenChucVu(),
-                        "quyenHan", quyenHan
-                    )
-                ));
+                        "status", true,
+                        "message", "Token hợp lệ",
+                        "data", adminData));
             } else {
                 return ResponseEntity.ok(Map.of("status", false, "message", "Token không hợp lệ hoặc đã hết hạn"));
             }
@@ -106,7 +108,7 @@ public class AdminController {
             return ResponseEntity.ok(Map.of("status", false, "message", "Token không hợp lệ hoặc đã hết hạn"));
         }
     }
-    
+
     // Management of admins - these should only be accessible to super admin
     @GetMapping
     public ResponseEntity<?> getAllAdmins() {
@@ -123,7 +125,7 @@ public class AdminController {
         }
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/quan-tri-vien/{id}")
     public ResponseEntity<?> getAdminById(@PathVariable Long id) {
         try {
             Admin admin = adminService.getAdminById(id);
@@ -184,4 +186,4 @@ public class AdminController {
                     .body(Map.of("status", false, "message", e.getMessage()));
         }
     }
-} 
+}

@@ -13,7 +13,6 @@ import com.fpt_be.fpt_be.Repository.PermissionRepository;
 import com.fpt_be.fpt_be.Entity.PositionPermission;
 import com.fpt_be.fpt_be.Entity.Position;
 import com.fpt_be.fpt_be.Entity.Permission;
-import com.fpt_be.fpt_be.Dto.PositionPermissionDto;
 
 @Service
 public class PositionPermissionService {
@@ -100,5 +99,13 @@ public class PositionPermissionService {
                 .filter(pp -> pp.getPermission().getId().equals(permissionId))
                 .findFirst()
                 .ifPresent(pp -> positionPermissionRepository.delete(pp));
+    }
+
+    /**
+     * Removes all position permissions associated with a specific permission
+     * @param permissionId The ID of the permission
+     */
+    public void removeAllPositionPermissionsForPermission(Long permissionId) {
+        positionPermissionRepository.deleteByPermissionId(permissionId);
     }
 } 
