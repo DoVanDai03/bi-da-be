@@ -9,8 +9,9 @@ public class AdminDto {
     private String hoVaTen;
     private String sdt;
     private String chucVu;
+    private Long chucVuId;
     private String quyenHan;
-    private String tinhTrang;
+    private Integer tinhTrang;
     private LocalDateTime ngayTao;
     private LocalDateTime ngayCapNhat;
 
@@ -19,7 +20,7 @@ public class AdminDto {
     }
 
     public AdminDto(Long id, String email, String password, String hoVaTen, String sdt, String chucVu, 
-                  String quyenHan, String tinhTrang, LocalDateTime ngayTao, LocalDateTime ngayCapNhat) {
+                  String quyenHan, Integer tinhTrang, LocalDateTime ngayTao, LocalDateTime ngayCapNhat) {
         this.id = id;
         this.email = email;
         this.password = password;
@@ -88,11 +89,11 @@ public class AdminDto {
         this.quyenHan = quyenHan;
     }
 
-    public String getTinhTrang() {
+    public Integer getTinhTrang() {
         return tinhTrang;
     }
 
-    public void setTinhTrang(String tinhTrang) {
+    public void setTinhTrang(Integer tinhTrang) {
         this.tinhTrang = tinhTrang;
     }
 
@@ -110,5 +111,13 @@ public class AdminDto {
 
     public void setNgayCapNhat(LocalDateTime ngayCapNhat) {
         this.ngayCapNhat = ngayCapNhat;
+    }
+
+    public Long getChucVuId() {
+        return chucVuId;
+    }
+
+    public void setChucVuId(Long chucVuId) {
+        this.chucVuId = chucVuId;
     }
 } 

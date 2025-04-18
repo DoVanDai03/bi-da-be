@@ -4,34 +4,29 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.LocalDateTime;
-import java.util.Set;
 
 @Entity
-@Table(name = "positions")
+@Table(name = "permissions")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Position {
+public class Permission {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(name = "ten_chuc_vu")
-    private String tenChucVu;
+    @Column(name = "ten_quyen")
+    private String tenQuyen;
+    
+    @Column(name = "ma_quyen", unique = true)
+    private String maQuyen;
+    
+    @Column(name = "mo_ta")
+    private String moTa;
     
     @Column(name = "tinh_trang")
     private Boolean tinhTrang;
-    
-    @OneToMany(mappedBy = "position")
-    @JsonIgnore
-    private Set<Admin> admins;
-    
-    @OneToMany(mappedBy = "position")
-    @JsonIgnore
-    private Set<PositionPermission> positionPermissions;
     
     @Column(name = "ngay_tao")
     private LocalDateTime ngayTao;
@@ -44,7 +39,7 @@ public class Position {
         ngayTao = LocalDateTime.now();
         ngayCapNhat = LocalDateTime.now();
         if (tinhTrang == null) {
-            tinhTrang = true; // Set default value to true when creating new position
+            tinhTrang = true;
         }
     }
 

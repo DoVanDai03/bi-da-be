@@ -7,4 +7,5 @@ import com.fpt_be.fpt_be.Entity.Position;
 
 @Repository
 public interface PositionRepository extends JpaRepository<Position, Long> {
+    Position findFirstByTenChucVu(String tenChucVu);
 } 

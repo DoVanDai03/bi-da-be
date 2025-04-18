@@ -12,6 +12,9 @@ import java.time.LocalDateTime;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.JoinColumn;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Entity
 @Table(name = "admins")
@@ -35,14 +38,13 @@ public class Admin {
     @Column(name = "sdt")
     private String sdt;
 
-    @Column(name = "chuc_vu")
-    private String chucVu;
-
-    @Column(name = "quyen_han")
-    private String quyenHan;
+    @ManyToOne
+    @JoinColumn(name = "id_chuc_vu")
+    @JsonBackReference
+    private Position position;
 
     @Column(name = "tinh_trang")
-    private String tinhTrang;
+    private Integer tinhTrang;
     
     @Column(name = "ngay_tao")
     private LocalDateTime ngayTao;
@@ -55,7 +57,7 @@ public class Admin {
         ngayTao = LocalDateTime.now();
         ngayCapNhat = LocalDateTime.now();
         if (tinhTrang == null) {
-            tinhTrang = "Hoạt động"; // Default value when creating new admin
+            tinhTrang = 1; // 1 = Hoạt động, 0 = Không hoạt động
         }
     }
 
@@ -104,27 +106,19 @@ public class Admin {
         this.sdt = sdt;
     }
     
-    public String getChucVu() {
-        return chucVu;
+    public Position getPosition() {
+        return position;
     }
     
-    public void setChucVu(String chucVu) {
-        this.chucVu = chucVu;
-    }
-    
-    public String getQuyenHan() {
-        return quyenHan;
-    }
-    
-    public void setQuyenHan(String quyenHan) {
-        this.quyenHan = quyenHan;
+    public void setPosition(Position position) {
+        this.position = position;
     }
 
-    public String getTinhTrang() {
+    public Integer getTinhTrang() {
         return tinhTrang;
     }
 
-    public void setTinhTrang(String tinhTrang) {
+    public void setTinhTrang(Integer tinhTrang) {
         this.tinhTrang = tinhTrang;
     }
     

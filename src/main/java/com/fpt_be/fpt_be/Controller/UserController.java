@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import com.fpt_be.fpt_be.Dto.UserDto;
 import com.fpt_be.fpt_be.Entity.User;
 import com.fpt_be.fpt_be.Service.UserService;
+import com.fpt_be.fpt_be.Security.JwtTokenProvider;
 
 @RestController
 @RequestMapping("/api/admin/khach-hang")
@@ -17,10 +18,22 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+    
+    @Autowired
+    private JwtTokenProvider tokenProvider;
 
     @GetMapping
-    public ResponseEntity<?> getAllUsers() {
+    public ResponseEntity<?> getAllUsers(@RequestHeader(value = "Authorization", required = false) String authHeader) {
         try {
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return ResponseEntity.ok(Map.of("status", false, "message", "Token không hợp lệ"));
+            }
+
+            String token = authHeader.substring(7);
+            if (!tokenProvider.validateToken(token) || !tokenProvider.isAdminToken(token)) {
+                return ResponseEntity.ok(Map.of("status", false, "message", "Token không hợp lệ hoặc không có quyền admin"));
+            }
+
             List<User> users = userService.getAllUsers();
             return ResponseEntity.ok()
                     .body(Map.of(
@@ -34,8 +47,17 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getUserById(@PathVariable Long id) {
+    public ResponseEntity<?> getUserById(@PathVariable Long id, @RequestHeader(value = "Authorization", required = false) String authHeader) {
         try {
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return ResponseEntity.ok(Map.of("status", false, "message", "Token không hợp lệ"));
+            }
+
+            String token = authHeader.substring(7);
+            if (!tokenProvider.validateToken(token) || !tokenProvider.isAdminToken(token)) {
+                return ResponseEntity.ok(Map.of("status", false, "message", "Token không hợp lệ hoặc không có quyền admin"));
+            }
+
             User user = userService.getUserById(id);
             return ResponseEntity.ok()
                     .body(Map.of(
@@ -49,8 +71,17 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody UserDto userDto) {
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody UserDto userDto, @RequestHeader(value = "Authorization", required = false) String authHeader) {
         try {
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return ResponseEntity.ok(Map.of("status", false, "message", "Token không hợp lệ"));
+            }
+
+            String token = authHeader.substring(7);
+            if (!tokenProvider.validateToken(token) || !tokenProvider.isAdminToken(token)) {
+                return ResponseEntity.ok(Map.of("status", false, "message", "Token không hợp lệ hoặc không có quyền admin"));
+            }
+
             User updatedUser = userService.updateUser(id, userDto);
             return ResponseEntity.ok()
                     .body(Map.of(
@@ -64,8 +95,17 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<?> deleteUser(@PathVariable Long id, @RequestHeader(value = "Authorization", required = false) String authHeader) {
         try {
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return ResponseEntity.ok(Map.of("status", false, "message", "Token không hợp lệ"));
+            }
+
+            String token = authHeader.substring(7);
+            if (!tokenProvider.validateToken(token) || !tokenProvider.isAdminToken(token)) {
+                return ResponseEntity.ok(Map.of("status", false, "message", "Token không hợp lệ hoặc không có quyền admin"));
+            }
+
             userService.deleteUser(id);
             return ResponseEntity.ok()
                     .body(Map.of(

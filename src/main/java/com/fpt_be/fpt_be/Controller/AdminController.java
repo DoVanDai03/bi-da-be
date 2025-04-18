@@ -2,6 +2,7 @@ package com.fpt_be.fpt_be.Controller;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -10,8 +11,11 @@ import org.springframework.web.bind.annotation.*;
 
 import com.fpt_be.fpt_be.Dto.AdminDto;
 import com.fpt_be.fpt_be.Entity.Admin;
+import com.fpt_be.fpt_be.Entity.Permission;
+import com.fpt_be.fpt_be.Entity.PositionPermission;
 import com.fpt_be.fpt_be.Security.JwtTokenProvider;
 import com.fpt_be.fpt_be.Service.AdminService;
+import com.fpt_be.fpt_be.Service.PositionPermissionService;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -22,6 +26,9 @@ public class AdminController {
     
     @Autowired
     private JwtTokenProvider tokenProvider;
+    
+    @Autowired
+    private PositionPermissionService positionPermissionService;
     
     @PostMapping("/dang-nhap")
     public ResponseEntity<?> dangNhapAdmin(@RequestBody AdminDto request) {
@@ -34,6 +41,11 @@ public class AdminController {
             Admin admin = adminService.dangNhapAdmin(request.getEmail(), request.getPassword());
             String token = tokenProvider.generateAdminToken(admin.getId(), admin.getEmail());
             
+            List<PositionPermission> permissions = positionPermissionService.getPermissionsByPosition(admin.getPosition().getId());
+            List<String> quyenHan = permissions.stream()
+                .map(pp -> pp.getPermission().getMaQuyen())
+                .collect(Collectors.toList());
+            
             return ResponseEntity.ok(Map.of(
                 "status", true, 
                 "message", "Đăng nhập thành công!", 
@@ -42,8 +54,8 @@ public class AdminController {
                     "id", admin.getId(),
                     "email", admin.getEmail(),
                     "hoVaTen", admin.getHoVaTen(),
-                    "chucVu", admin.getChucVu(),
-                    "quyenHan", admin.getQuyenHan()
+                    "chucVu", admin.getPosition().getTenChucVu(),
+                    "quyenHan", quyenHan
                 )
             ));
         } catch (RuntimeException e) {
@@ -70,6 +82,12 @@ public class AdminController {
                 
                 Long adminId = tokenProvider.getUserIdFromToken(token);
                 Admin admin = adminService.getAdminById(adminId);
+                
+                List<PositionPermission> permissions = positionPermissionService.getPermissionsByPosition(admin.getPosition().getId());
+                List<String> quyenHan = permissions.stream()
+                    .map(pp -> pp.getPermission().getMaQuyen())
+                    .collect(Collectors.toList());
+                
                 return ResponseEntity.ok(Map.of(
                     "status", true, 
                     "message", "Token hợp lệ", 
@@ -77,8 +95,8 @@ public class AdminController {
                         "id", admin.getId(),
                         "email", admin.getEmail(),
                         "hoVaTen", admin.getHoVaTen(),
-                        "chucVu", admin.getChucVu(),
-                        "quyenHan", admin.getQuyenHan()
+                        "chucVu", admin.getPosition().getTenChucVu(),
+                        "quyenHan", quyenHan
                     )
                 ));
             } else {
@@ -93,7 +111,7 @@ public class AdminController {
     @GetMapping
     public ResponseEntity<?> getAllAdmins() {
         try {
-            List<Admin> admins = adminService.getAllAdmins();
+            List<AdminDto> admins = adminService.getAllAdmins();
             return ResponseEntity.ok()
                     .body(Map.of(
                             "status", true,
@@ -109,11 +127,12 @@ public class AdminController {
     public ResponseEntity<?> getAdminById(@PathVariable Long id) {
         try {
             Admin admin = adminService.getAdminById(id);
+            AdminDto adminDto = adminService.convertToDto(admin);
             return ResponseEntity.ok()
                     .body(Map.of(
                             "status", true,
                             "message", "Lấy thông tin quản trị viên thành công",
-                            "data", admin));
+                            "data", adminDto));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest()
                     .body(Map.of("status", false, "message", e.getMessage()));
@@ -124,11 +143,12 @@ public class AdminController {
     public ResponseEntity<?> createAdmin(@RequestBody AdminDto adminDto) {
         try {
             Admin createdAdmin = adminService.createAdmin(adminDto);
+            AdminDto createdAdminDto = adminService.convertToDto(createdAdmin);
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(Map.of(
                             "status", true,
                             "message", "Thêm quản trị viên thành công",
-                            "data", createdAdmin));
+                            "data", createdAdminDto));
         } catch (Exception e) {
             return ResponseEntity.badRequest()
                     .body(Map.of("status", false, "message", e.getMessage()));
@@ -139,11 +159,12 @@ public class AdminController {
     public ResponseEntity<?> updateAdmin(@PathVariable Long id, @RequestBody AdminDto adminDto) {
         try {
             Admin updatedAdmin = adminService.updateAdmin(id, adminDto);
+            AdminDto updatedAdminDto = adminService.convertToDto(updatedAdmin);
             return ResponseEntity.ok()
                     .body(Map.of(
                             "status", true,
                             "message", "Cập nhật thông tin quản trị viên thành công",
-                            "data", updatedAdmin));
+                            "data", updatedAdminDto));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest()
                     .body(Map.of("status", false, "message", e.getMessage()));
