@@ -85,16 +85,38 @@ public class CartService {
     
     // Phương thức thêm sản phẩm vào giỏ hàng
     public Cart addProductToCart(Long idKhachHang, Long idSanPham, Integer soLuong, Double thanhTien) {
+        // Kiểm tra số lượng tồn kho
+        Product product = productRepository.findByIdWithJoins(idSanPham);
+        if (product == null) {
+            throw new RuntimeException("Không tìm thấy sản phẩm với id: " + idSanPham);
+        }
+        
+        if (product.getSoLuongTonKho() == null) {
+            throw new RuntimeException("Số lượng tồn kho của sản phẩm chưa được cập nhật");
+        }
+
         // Kiểm tra xem sản phẩm đã có trong giỏ hàng chưa
         Optional<Cart> existingCartItem = cartRepository.findByIdKhachHangAndIdSanPhamAndTrangThai(idKhachHang, idSanPham, "active");
         
         if (existingCartItem.isPresent()) {
             // Nếu sản phẩm đã có trong giỏ hàng với trạng thái "active", cập nhật số lượng và thành tiền
             Cart cartItem = existingCartItem.get();
-            cartItem.setSoLuong(cartItem.getSoLuong() + soLuong);
+            int newQuantity = cartItem.getSoLuong() + soLuong;
+            
+            // Kiểm tra số lượng mới có vượt quá tồn kho không
+            if (newQuantity > product.getSoLuongTonKho()) {
+                throw new RuntimeException("Số lượng không thể vượt quá " + product.getSoLuongTonKho() + " sản phẩm trong kho!");
+            }
+            
+            cartItem.setSoLuong(newQuantity);
             cartItem.setThanhTien(cartItem.getThanhTien() + thanhTien);
             return cartRepository.save(cartItem);
         } else {
+            // Kiểm tra số lượng yêu cầu có vượt quá tồn kho không
+            if (soLuong > product.getSoLuongTonKho()) {
+                throw new RuntimeException("Số lượng không thể vượt quá " + product.getSoLuongTonKho() + " sản phẩm trong kho!");
+            }
+            
             // Nếu sản phẩm chưa có trong giỏ hàng hoặc có trạng thái "ordered", tạo mới
             Cart newCartItem = new Cart();
             newCartItem.setIdKhachHang(idKhachHang);
@@ -108,8 +130,23 @@ public class CartService {
     
     // Phương thức cập nhật số lượng sản phẩm trong giỏ hàng
     public Cart updateProductQuantity(Long idKhachHang, Long idSanPham, Integer soLuong, Double thanhTien) {
+        // Kiểm tra số lượng tồn kho
+        Product product = productRepository.findByIdWithJoins(idSanPham);
+        if (product == null) {
+            throw new RuntimeException("Không tìm thấy sản phẩm với id: " + idSanPham);
+        }
+        
+        if (product.getSoLuongTonKho() == null) {
+            throw new RuntimeException("Số lượng tồn kho của sản phẩm chưa được cập nhật");
+        }
+
+        // Kiểm tra số lượng yêu cầu có vượt quá tồn kho không
+        if (soLuong > product.getSoLuongTonKho()) {
+            throw new RuntimeException("Số lượng không thể vượt quá " + product.getSoLuongTonKho() + " sản phẩm trong kho!");
+        }
+
         // Tìm sản phẩm trong giỏ hàng
-        Optional<Cart> cartItem = cartRepository.findByIdKhachHangAndIdSanPham(idKhachHang, idSanPham);
+        Optional<Cart> cartItem = cartRepository.findByIdKhachHangAndIdSanPhamAndTrangThai(idKhachHang, idSanPham, "active");
         
         if (cartItem.isEmpty()) {
             throw new RuntimeException("Không tìm thấy sản phẩm trong giỏ hàng");
@@ -125,7 +162,7 @@ public class CartService {
     // Phương thức xóa sản phẩm khỏi giỏ hàng
     public void removeProductFromCart(Long idKhachHang, Long idSanPham) {
         // Tìm sản phẩm trong giỏ hàng
-        Optional<Cart> cartItem = cartRepository.findByIdKhachHangAndIdSanPham(idKhachHang, idSanPham);
+        Optional<Cart> cartItem = cartRepository.findByIdKhachHangAndIdSanPhamAndTrangThai(idKhachHang, idSanPham, "active");
         
         if (cartItem.isEmpty()) {
             throw new RuntimeException("Không tìm thấy sản phẩm trong giỏ hàng");
@@ -168,12 +205,12 @@ public class CartService {
                     dto.setIdDonHang(cart.getIdDonHang());
                     
                     // Lấy thông tin sản phẩm
-                    Optional<Product> productOpt = productRepository.findById(cart.getIdSanPham());
-                    if (productOpt.isPresent()) {
-                        Product product = productOpt.get();
+                    Product product = productRepository.findByIdWithJoins(cart.getIdSanPham());
+                    if (product != null) {
                         dto.setTenSanPham(product.getTenSanPham());
                         dto.setGiaSanPham(product.getGiaSanPham());
                         dto.setHinhAnh(product.getHinhAnh());
+                        dto.setSoLuongTonKho(product.getSoLuongTonKho());
                     }
                     
                     return dto;
@@ -206,7 +243,7 @@ public class CartService {
         List<Cart> carts;
         if (idSanPham != null) {
             // Nếu có idSanPham, chỉ áp dụng cho sản phẩm cụ thể
-            Optional<Cart> cartItem = cartRepository.findByIdKhachHangAndIdSanPham(idKhachHang, idSanPham);
+            Optional<Cart> cartItem = cartRepository.findByIdKhachHangAndIdSanPhamAndTrangThai(idKhachHang, idSanPham, "active");
             if (cartItem.isEmpty()) {
                 result.put("status", false);
                 result.put("message", "Không tìm thấy sản phẩm trong giỏ hàng");
@@ -223,7 +260,7 @@ public class CartService {
             carts = List.of(cartItem.get());
         } else {
             // Nếu không có idSanPham, áp dụng cho toàn bộ giỏ hàng
-            carts = cartRepository.findByIdKhachHang(idKhachHang);
+            carts = cartRepository.findByIdKhachHangAndTrangThai(idKhachHang, "active");
             if (carts.isEmpty()) {
                 result.put("status", false);
                 result.put("message", "Giỏ hàng trống");
@@ -508,7 +545,7 @@ public class CartService {
      */
     
     public void updateCartStatus(Long idKhachHang, Long idSanPham, String status) {
-        Optional<Cart> cartOpt = cartRepository.findByIdKhachHangAndIdSanPham(idKhachHang, idSanPham);
+        Optional<Cart> cartOpt = cartRepository.findByIdKhachHangAndIdSanPhamAndTrangThai(idKhachHang, idSanPham, "active");
         if (cartOpt.isPresent()) {
             Cart cart = cartOpt.get();
             cart.setTrangThai(status);

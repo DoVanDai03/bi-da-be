@@ -10,15 +10,19 @@ public interface CartRepository extends JpaRepository<Cart, Long> {
     // Find carts by customer ID
     java.util.List<Cart> findByIdKhachHang(Long idKhachHang);
     
-    // Find cart by customer ID and product ID
-    java.util.Optional<Cart> findByIdKhachHangAndIdSanPham(Long idKhachHang, Long idSanPham);
+    // Find cart by customer ID and product ID with active status
+    java.util.Optional<Cart> findByIdKhachHangAndIdSanPhamAndTrangThai(Long idKhachHang, Long idSanPham, String trangThai);
     
     // Find carts by order ID
     java.util.List<Cart> findByIdDonHang(Long idDonHang);
 
     java.util.Optional<Cart> findByIdDonHangAndIdSanPham(Long idDonHang, Long idSanPham);
 
-    java.util.Optional<Cart> findByIdKhachHangAndIdSanPhamAndTrangThai(Long idKhachHang, Long idSanPham, String trangThai);
-
     java.util.List<Cart> findByIdKhachHangAndTrangThai(Long idKhachHang, String trangThai);
+    
+    /**
+     * @deprecated Use findByIdKhachHangAndIdSanPhamAndTrangThai instead
+     */
+    @Deprecated
+    java.util.Optional<Cart> findByIdKhachHangAndIdSanPham(Long idKhachHang, Long idSanPham);
 }

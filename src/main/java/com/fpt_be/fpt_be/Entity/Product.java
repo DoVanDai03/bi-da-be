@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Min;
 
 @Entity
 @Table(name = "products")
@@ -47,7 +49,9 @@ public class Product {
     @Column(name = "gia_san_pham")
     private Double giaSanPham;
     
-    @Column(name = "so_luong_ton_kho")
+    @Column(name = "so_luong_ton_kho", nullable = false)
+    @NotNull(message = "Số lượng tồn kho không được để trống")
+    @Min(value = 0, message = "Số lượng tồn kho không được âm")
     private Integer soLuongTonKho;
     
     @Column(name = "kich_co")

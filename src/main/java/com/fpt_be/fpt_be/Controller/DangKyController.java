@@ -1,5 +1,6 @@
 package com.fpt_be.fpt_be.Controller;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fpt_be.fpt_be.Dto.UserDto;
 import com.fpt_be.fpt_be.Request.DangKyRequest;
 import com.fpt_be.fpt_be.Service.UserService;
+import com.fpt_be.fpt_be.Validator.UserValidator;
 
 @RestController
 @RequestMapping("/api")
@@ -22,18 +24,25 @@ public class DangKyController {
 
     @PostMapping("/dang-ky")
     public ResponseEntity<?> dangKy(@RequestBody UserDto request) {
-        if (request.getEmail() == null || request.getPassword() == null) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("status", false, "message", "Email và mật khẩu không được trống"));
-        }
-
         try {
+            // Chuyển đổi từ UserDto sang DangKyRequest
             DangKyRequest dangKyRequest = new DangKyRequest();
             dangKyRequest.setEmail(request.getEmail());
             dangKyRequest.setPassword(request.getPassword());
             dangKyRequest.setHoVaTen(request.getHoVaTen());
             dangKyRequest.setSdt(request.getSdt());
             
+            // Validate dữ liệu
+            List<String> validationErrors = UserValidator.validateDangKy(dangKyRequest);
+            if (!validationErrors.isEmpty()) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of(
+                            "status", false, 
+                            "message", "Dữ liệu không hợp lệ",
+                            "errors", validationErrors));
+            }
+            
+            // Thực hiện đăng ký
             String result = userService.dangKy(dangKyRequest);
             return ResponseEntity.ok(Map.of("status", true, "message", result));
         } catch (RuntimeException e) {

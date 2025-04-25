@@ -42,6 +42,14 @@ public class ProductService {
     }
 
     public Product createProduct(ProductDto productDto) {
+        // Validate required fields
+        if (productDto.getSoLuongTonKho() == null) {
+            throw new RuntimeException("Số lượng tồn kho không được để trống");
+        }
+        if (productDto.getSoLuongTonKho() < 0) {
+            throw new RuntimeException("Số lượng tồn kho không được âm");
+        }
+
         Product product = new Product();
         product.setTenSanPham(productDto.getTenSanPham());
         product.setMaSanPham(productDto.getMaSanPham());
@@ -85,6 +93,14 @@ public class ProductService {
     }
 
     public Product updateProduct(Long id, ProductDto productDto) {
+        // Validate required fields
+        if (productDto.getSoLuongTonKho() == null) {
+            throw new RuntimeException("Số lượng tồn kho không được để trống");
+        }
+        if (productDto.getSoLuongTonKho() < 0) {
+            throw new RuntimeException("Số lượng tồn kho không được âm");
+        }
+
         Optional<Product> existingProduct = productRepository.findById(id);
         if (existingProduct.isPresent()) {
             Product product = existingProduct.get();

@@ -5,11 +5,13 @@ import com.fpt_be.fpt_be.Request.QuenMatKhauRequest;
 import com.fpt_be.fpt_be.Service.QuenMatKhauService;
 import com.fpt_be.fpt_be.Entity.User;
 import com.fpt_be.fpt_be.Repository.UserRepository;
+import com.fpt_be.fpt_be.Validator.QuenMatKhauValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -23,6 +25,15 @@ public class QuenMatKhauServiceImpl implements QuenMatKhauService {
 
     @Override
     public ResponseEntity<?> xacNhanMa(QuenMatKhauRequest request) {
+        // Validate request
+        List<String> errors = QuenMatKhauValidator.validateQuenMatKhau(request);
+        if (!errors.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "status", false,
+                "errors", errors
+            ));
+        }
+
         // Đã xử lý bằng Jcrip
         return ResponseEntity.ok().build();
     }
@@ -30,6 +41,15 @@ public class QuenMatKhauServiceImpl implements QuenMatKhauService {
     @Override
     public ResponseEntity<?> doiMatKhau(DoiMatKhauRequest request) {
         try {
+            // Validate request
+            List<String> errors = QuenMatKhauValidator.validateDoiMatKhau(request);
+            if (!errors.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                    "status", false,
+                    "errors", errors
+                ));
+            }
+
             // Tìm user theo email
             User user = userRepository.findByEmail(request.getEmail());
             if (user == null) {

@@ -5,5 +5,5 @@ import lombok.Data;
 @Data
 public class QuenMatKhauRequest {
     private String email;
-    private String code;
+    private String maXacNhan;
 } 
