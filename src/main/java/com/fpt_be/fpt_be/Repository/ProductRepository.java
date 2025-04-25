@@ -21,11 +21,14 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
            "WHERE p.id = :id")
     Product findByIdWithJoins(@Param("id") Long id);
     
-    @Query("SELECT p FROM Product p " +
-           "LEFT JOIN FETCH p.danhMuc " +
-           "LEFT JOIN FETCH p.thuongHieu " +
-           "LEFT JOIN FETCH p.giamGia " +
-           "LEFT JOIN FETCH p.nhaCungCap")
+    @Query(value = "SELECT DISTINCT p.* FROM products p " +
+           "LEFT JOIN categories c ON p.id_danh_muc = c.id " +
+           "LEFT JOIN brands b ON p.id_thuong_hieu = b.id " +
+           "LEFT JOIN discounts d ON p.id_giam_gia = d.id " +
+           "LEFT JOIN suppliers s ON p.id_nha_cung_cap = s.id " +
+           "WHERE p.trang_thai = true " +
+           "ORDER BY RAND() " +
+           "LIMIT 4", nativeQuery = true)
     List<Product> findAllWithJoins();
     
     /**
