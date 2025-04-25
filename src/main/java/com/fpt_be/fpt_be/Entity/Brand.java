@@ -28,6 +28,9 @@ public class Brand {
     
     @Column(name = "mo_ta")
     private String moTa;
+
+    @Column(name = "tinh_trang")
+    private Integer tinhTrang;
     
     @Column(name = "ngay_tao")
     private LocalDateTime ngayTao;
@@ -39,6 +42,9 @@ public class Brand {
     protected void onCreate() {
         ngayTao = LocalDateTime.now();
         ngayCapNhat = LocalDateTime.now();
+        if (tinhTrang == null) {
+            tinhTrang = 1; // Set default status as active
+        }
     }
 
     @PreUpdate

@@ -92,4 +92,23 @@ public class BrandController {
                     .body(Map.of("status", false, "message", e.getMessage()));
         }
     }
+
+    @PatchMapping("/{id}/toggle-status")
+    public ResponseEntity<?> toggleBrandStatus(@PathVariable Long id) {
+        try {
+            Brand updatedBrand = brandService.toggleBrandStatus(id);
+            String message = updatedBrand.getTinhTrang() == 1 ? 
+                "Kích hoạt thương hiệu thành công" : 
+                "Tạm dừng thương hiệu thành công";
+            
+            return ResponseEntity.ok()
+                    .body(Map.of(
+                            "status", true,
+                            "message", message,
+                            "data", updatedBrand));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("status", false, "message", e.getMessage()));
+        }
+    }
 } 

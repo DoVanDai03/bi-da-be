@@ -12,6 +12,7 @@ public class BrandDto {
     private Long id;
     private String tenThuongHieu;
     private String moTa;
+    private Integer tinhTrang;
     private LocalDateTime ngayTao;
     private LocalDateTime ngayCapNhat;
 } 

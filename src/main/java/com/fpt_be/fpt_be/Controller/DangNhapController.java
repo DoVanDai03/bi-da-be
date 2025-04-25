@@ -78,7 +78,8 @@ public class DangNhapController {
                     "user", Map.of(
                         "id", user.getId(),
                         "email", user.getEmail(),
-                        "hoVaTen", user.getHoVaTen()
+                        "hoVaTen", user.getHoVaTen(),
+                        "isBlocked", user.getIsBlock()
                     )
                 ));
             } else {
