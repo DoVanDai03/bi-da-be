@@ -42,6 +42,10 @@ public class ProductService {
         return productRepository.findAllWithJoins();
     }
 
+    public List<Product> getAllProductsAdmin() {
+        return productRepository.findAllWithJoinsAdmin();
+    }
+
     public Product createProduct(ProductDto productDto) {
         // Validate required fields
         if (productDto.getSoLuongTonKho() == null) {

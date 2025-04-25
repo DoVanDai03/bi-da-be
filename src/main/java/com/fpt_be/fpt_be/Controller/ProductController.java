@@ -34,6 +34,22 @@ public class ProductController {
         }
     }
 
+    @GetMapping("/admin")
+    public ResponseEntity<?> getAllProductsAdmin() {
+        try {
+            List<Product> products = productService.getAllProductsAdmin();
+            return ResponseEntity.ok()
+                    .body(Map.of(
+                            "status", true,
+                            "message", "Lấy danh sách sản phẩm admin thành công",
+                            "data", products));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("status", false, "message", e.getMessage()));
+        }
+    }
+
+
     @GetMapping("/{id}")
     public ResponseEntity<?> getProductById(@PathVariable Long id) {
         try {
