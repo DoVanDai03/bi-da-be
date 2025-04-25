@@ -51,6 +51,9 @@ public class User {
     @Column(name = "ngay_cap_nhat")
     private LocalDateTime ngayCapNhat;
 
+    @Column(name = "is_block", nullable = false)
+    private Integer isBlock = 1; // Default value is 1 (active)
+
     @PrePersist
     protected void onCreate() {
         ngayTao = LocalDateTime.now();
@@ -103,5 +106,13 @@ public class User {
 
     public void setDiaChi(String diaChi) {
         this.diaChi = diaChi;
+    }
+
+    public Integer getIsBlock() {
+        return isBlock;
+    }
+
+    public void setIsBlock(Integer isBlock) {
+        this.isBlock = isBlock;
     }
 }

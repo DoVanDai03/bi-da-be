@@ -13,6 +13,7 @@ public class UserDto {
     private String gioiTinh;
     private LocalDateTime ngayTao;
     private LocalDateTime ngayCapNhat;
+    private Integer isBlock;
 
     // Default constructor
     public UserDto() {
@@ -30,6 +31,7 @@ public class UserDto {
         this.gioiTinh = gioiTinh;
         this.ngayTao = ngayTao;
         this.ngayCapNhat = ngayCapNhat;
+        this.isBlock = 1; // Default value is 1 (active)
     }
 
     public Long getId() {
@@ -110,5 +112,13 @@ public class UserDto {
 
     public void setNgayCapNhat(LocalDateTime ngayCapNhat) {
         this.ngayCapNhat = ngayCapNhat;
+    }
+
+    public Integer getIsBlock() {
+        return isBlock;
+    }
+
+    public void setIsBlock(Integer isBlock) {
+        this.isBlock = isBlock;
     }
 }

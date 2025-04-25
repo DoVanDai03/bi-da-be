@@ -42,6 +42,9 @@ public class UserService {
         if (user == null) {
             throw new RuntimeException("Email không tồn tại");
         }
+        if (user.getIsBlock() == 0) {
+            throw new RuntimeException("Tài khoản đã bị khóa");
+        }
         if (passwordEncoder.matches(password, user.getPassword())) {
             return user;
         } else {
@@ -75,6 +78,9 @@ public class UserService {
             user.setDiaChi(userDto.getDiaChi());
             user.setNgaySinh(userDto.getNgaySinh());
             user.setGioiTinh(userDto.getGioiTinh());
+            if (userDto.getIsBlock() != null) {
+                user.setIsBlock(userDto.getIsBlock());
+            }
             return userRepository.save(user);
         }
         throw new RuntimeException("Không tìm thấy người dùng với id: " + id);
@@ -149,5 +155,15 @@ public class UserService {
         String encodedNewPassword = passwordEncoder.encode(newPassword);
         user.setPassword(encodedNewPassword);
         userRepository.save(user);
+    }
+
+    // Add new method to toggle user block status
+    public User toggleBlockUser(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng với id: " + id));
+        
+        // Toggle block status (0 -> 1 or 1 -> 0)
+        user.setIsBlock(user.getIsBlock() == 0 ? 1 : 0);
+        return userRepository.save(user);
     }
 }

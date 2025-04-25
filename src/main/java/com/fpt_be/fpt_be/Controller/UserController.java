@@ -116,4 +116,30 @@ public class UserController {
                     .body(Map.of("status", false, "message", e.getMessage()));
         }
     }
+
+    @PutMapping("/{id}/toggle-block")
+    public ResponseEntity<?> toggleBlockUser(@PathVariable Long id, @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        try {
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return ResponseEntity.ok(Map.of("status", false, "message", "Token không hợp lệ"));
+            }
+
+            String token = authHeader.substring(7);
+            if (!tokenProvider.validateToken(token) || !tokenProvider.isAdminToken(token)) {
+                return ResponseEntity.ok(Map.of("status", false, "message", "Token không hợp lệ hoặc không có quyền admin"));
+            }
+
+            User user = userService.toggleBlockUser(id);
+            String message = user.getIsBlock() == 1 ? "Mở khóa người dùng thành công" : "Khóa người dùng thành công";
+            
+            return ResponseEntity.ok()
+                    .body(Map.of(
+                            "status", true,
+                            "message", message,
+                            "data", user));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("status", false, "message", e.getMessage()));
+        }
+    }
 } 
