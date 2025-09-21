@@ -80,8 +80,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             this.message = message;
         }
 
-        public String getMessage() {
-            return message;
-        }
+        // public String getMessage() {
+        //     return message;
+        // }
     }
 } 

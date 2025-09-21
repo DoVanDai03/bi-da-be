@@ -11,6 +11,7 @@ import com.fpt_be.fpt_be.Repository.UserRepository;
 import com.fpt_be.fpt_be.Request.DangKyRequest;
 import com.fpt_be.fpt_be.Entity.User;
 import com.fpt_be.fpt_be.Dto.UserDto;
+import com.fpt_be.fpt_be.Service.EmailService;
 
 @Service
 public class UserService {
@@ -18,6 +19,9 @@ public class UserService {
     private UserRepository userRepository;
     
     private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
+
+    @Autowired
+    private EmailService emailService;
 
     public String dangKy(DangKyRequest dangKyRequest) {
         // Check if email already exists
@@ -34,6 +38,8 @@ public class UserService {
             newUser.setNgaySinh(dangKyRequest.getNgaySinh());
             newUser.setGioiTinh(dangKyRequest.getGioiTinh());
             userRepository.save(newUser);
+            // Gửi mail xác nhận đăng ký
+            emailService.sendRegistrationEmail(newUser.getEmail(), newUser.getHoVaTen());
             return "Đăng ký thành công";
         }
     }

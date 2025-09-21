@@ -162,7 +162,7 @@ public class DataInitializer implements CommandLineRunner {
         Position superAdminPosition = positionRepository.findFirstByTenChucVu("Super Admin");
         if (superAdminPosition == null) {
             superAdminPosition = new Position();
-            superAdminPosition.setId(1L);
+            //superAdminPosition.setId(1L);
             superAdminPosition.setTenChucVu("Super Admin");
             superAdminPosition.setTinhTrang(true);
             superAdminPosition = positionRepository.save(superAdminPosition);

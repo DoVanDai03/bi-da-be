@@ -534,7 +534,7 @@ public class OrderService {
         try {
             // Remove hash from params to verify
             String vnp_SecureHash = vnpParams.get("vnp_SecureHash");
-            String signValue = vnpParams.get("vnp_SecureHashType") != null ? "" : vnpParams.get("vnp_SecureHashType");
+            //String signValue = vnpParams.get("vnp_SecureHashType") != null ? "" : vnpParams.get("vnp_SecureHashType");
             
             // Remove these fields from the verification
             vnpParams.remove("vnp_SecureHash");
@@ -572,7 +572,7 @@ public class OrderService {
                     Order order = updatePaymentStatus(orderId);
                     
                     // Get order details
-                    List<CartWithProductDto> orderItems = cartService.getCartsWithProductInfoByOrderId(orderId);
+                    //List<CartWithProductDto> orderItems = cartService.getCartsWithProductInfoByOrderId(orderId);
                     
                     // Build payment info response
                     Map<String, Object> paymentInfo = new HashMap<>();
