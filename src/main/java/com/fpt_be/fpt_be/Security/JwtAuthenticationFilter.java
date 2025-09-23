@@ -22,13 +22,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
     private final ObjectMapper objectMapper;
     private final List<String> excludedUrls = Arrays.asList(
-        "/api/dang-nhap", 
-        "/api/dang-ky", 
-        "/api/user/kiem-tra-token",
-        "/api/admin/dang-nhap",
-        "/api/admin/kiem-tra-token",
-        "/api/quen-mat-khau"
-    );
+            "/api/dang-nhap",
+            "/api/dang-ky",
+            "/api/user/kiem-tra-token",
+            "/api/admin/dang-nhap",
+            "/api/admin/kiem-tra-token",
+            "/api/quen-mat-khau",
+            "/api/news/**");
 
     public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider) {
         this.jwtTokenProvider = jwtTokenProvider;
@@ -36,7 +36,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain)
+    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response,
+            @NonNull FilterChain filterChain)
             throws ServletException, IOException {
         try {
             String jwt = getJwtFromRequest(request);
@@ -48,21 +49,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             } else {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.setContentType("application/json");
-                objectMapper.writeValue(response.getWriter(), 
-                    new ErrorResponse("Token không hợp lệ"));
+                objectMapper.writeValue(response.getWriter(),
+                        new ErrorResponse("Token không hợp lệ"));
             }
         } catch (Exception ex) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
-            objectMapper.writeValue(response.getWriter(), 
-                new ErrorResponse("Lỗi xác thực: " + ex.getMessage()));
+            objectMapper.writeValue(response.getWriter(),
+                    new ErrorResponse("Lỗi xác thực: " + ex.getMessage()));
         }
     }
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = request.getRequestURI();
-        return excludedUrls.stream().anyMatch(path::startsWith);
+        String path = request.getRequestURI().substring(request.getContextPath().length());
+
+        return excludedUrls.stream().anyMatch(excluded -> path.equals(excluded) || path.startsWith(excluded + "/"));
     }
 
     private String getJwtFromRequest(HttpServletRequest request) {
@@ -81,7 +83,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         // public String getMessage() {
-        //     return message;
+        // return message;
         // }
     }
-} 
+}

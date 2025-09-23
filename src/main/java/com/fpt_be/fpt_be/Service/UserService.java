@@ -11,7 +11,6 @@ import com.fpt_be.fpt_be.Repository.UserRepository;
 import com.fpt_be.fpt_be.Request.DangKyRequest;
 import com.fpt_be.fpt_be.Entity.User;
 import com.fpt_be.fpt_be.Dto.UserDto;
-import com.fpt_be.fpt_be.Service.EmailService;
 
 @Service
 public class UserService {
