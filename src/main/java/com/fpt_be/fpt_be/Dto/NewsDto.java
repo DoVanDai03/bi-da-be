@@ -12,7 +12,8 @@ import lombok.NoArgsConstructor;
 public class NewsDto {
     private Long id;
     private String title;
-    private String content;
+    private String content_short;
+    private String content_long;
     private String image;
     private String status;
     private String author;

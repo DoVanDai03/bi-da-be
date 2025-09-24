@@ -52,7 +52,14 @@ public class User {
     private LocalDateTime ngayCapNhat;
 
     @Column(name = "is_block", nullable = false)
-    private Integer isBlock = 1; // Default value is 1 (active)
+    private Integer isBlock = 1; // 1 = active, 0 = blocked/inactive
+
+    // Token xác minh tài khoản
+    @Column(name = "verification_token", length = 64)
+    private String verificationToken;
+
+    @Column(name = "verification_token_expires")
+    private LocalDateTime verificationTokenExpires;
 
     @PrePersist
     protected void onCreate() {

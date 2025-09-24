@@ -25,8 +25,11 @@ public class news {
     @Column(name = "title")
     private String title;
     
-    @Column(name = "content")
-    private String content;
+    @Column(name = "content_short")
+    private String content_short;
+
+    @Column(name = "content_long", columnDefinition = "LONGTEXT")
+    private String content_long;
 
     @Column(name = "image")
     private String image;

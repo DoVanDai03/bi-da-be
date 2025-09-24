@@ -2,10 +2,13 @@ package com.fpt_be.fpt_be.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
 
 import com.fpt_be.fpt_be.Repository.UserRepository;
 import com.fpt_be.fpt_be.Request.DangKyRequest;
@@ -22,6 +25,9 @@ public class UserService {
     @Autowired
     private EmailService emailService;
 
+    @Value("${app.frontend.verification-url:http://localhost:5173/xac-minh}")
+    private String frontendVerificationUrl;
+
     public String dangKy(DangKyRequest dangKyRequest) {
         // Check if email already exists
         if (userRepository.existsByEmail(dangKyRequest.getEmail())) {
@@ -36,10 +42,17 @@ public class UserService {
             newUser.setDiaChi(dangKyRequest.getDiaChi());
             newUser.setNgaySinh(dangKyRequest.getNgaySinh());
             newUser.setGioiTinh(dangKyRequest.getGioiTinh());
+            // set account inactive until verified
+            newUser.setIsBlock(0);
+            // generate verification token
+            String token = UUID.randomUUID().toString().replace("-", "");
+            newUser.setVerificationToken(token);
+            newUser.setVerificationTokenExpires(LocalDateTime.now().plusHours(24));
             userRepository.save(newUser);
-            // Gửi mail xác nhận đăng ký
-            emailService.sendRegistrationEmail(newUser.getEmail(), newUser.getHoVaTen());
-            return "Đăng ký thành công";
+            // Gửi mail xác minh tài khoản
+            String verificationLink = frontendVerificationUrl + "?token=" + token;
+            emailService.sendVerificationEmail(newUser.getEmail(), newUser.getHoVaTen(), verificationLink);
+            return "Đăng ký thành công. Vui lòng kiểm tra email để xác minh tài khoản.";
         }
     }
     public User dangNhap(String email, String password) {
@@ -48,13 +61,28 @@ public class UserService {
             throw new RuntimeException("Email không tồn tại");
         }
         if (user.getIsBlock() == 0) {
-            throw new RuntimeException("Tài khoản đã bị khóa");
+            throw new RuntimeException("Tài khoản chưa được kích hoạt hoặc đã bị khóa");
         }
         if (passwordEncoder.matches(password, user.getPassword())) {
             return user;
         } else {
             throw new RuntimeException("Mật khẩu không chính xác");
         }
+    }
+
+    public String verifyAccount(String token) {
+        User user = userRepository.findByVerificationToken(token);
+        if (user == null) {
+            throw new RuntimeException("Token không hợp lệ");
+        }
+        if (user.getVerificationTokenExpires() != null && user.getVerificationTokenExpires().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Token đã hết hạn");
+        }
+        user.setIsBlock(1);
+        user.setVerificationToken(null);
+        user.setVerificationTokenExpires(null);
+        userRepository.save(user);
+        return "Xác minh tài khoản thành công";
     }
 
     // Get all users

@@ -90,7 +90,8 @@ public class AuthorizationFilter extends OncePerRequestFilter {
             path.startsWith("/api/admin/dang-xuat") ||  // Thêm endpoint đăng xuất admin
             path.startsWith("/api/admin/kiem-tra-token") ||
             path.startsWith("/api/user/") || // Cho phép truy cập tất cả các endpoint của danh mục
-            path.startsWith("/api/news")
+            path.startsWith("/api/news")||
+            path.startsWith("/api/xac-minh")
             ) {
             return true;
         }

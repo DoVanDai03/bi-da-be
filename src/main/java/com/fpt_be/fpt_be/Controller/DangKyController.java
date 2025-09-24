@@ -7,6 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.view.RedirectView;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,6 +25,9 @@ import com.fpt_be.fpt_be.Validator.UserValidator;
 public class DangKyController {
     @Autowired
     private UserService userService;
+
+    @Value("${app.frontend.login-url:http://localhost:5173/dang-nhap}")
+    private String frontendLoginUrl;
 
     @PostMapping("/dang-ky")
     public ResponseEntity<?> dangKy(@RequestBody UserDto request) {
@@ -49,6 +56,33 @@ public class DangKyController {
             return ResponseEntity.badRequest()
                     .body(Map.of("status", false, "message", e.getMessage()));
         } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("status", false, "message", "Có lỗi xảy ra: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping("/xac-minh")
+    public Object verifyAccount(@RequestParam("token") String token,
+                                @RequestParam(value = "redirect", required = false, defaultValue = "true") boolean redirect) {
+        try {
+            String result = userService.verifyAccount(token);
+            if (redirect) {
+                String target = frontendLoginUrl + "?verified=1&message=" + java.net.URLEncoder.encode(result, java.nio.charset.StandardCharsets.UTF_8);
+                return new RedirectView(target);
+            }
+            return ResponseEntity.ok(Map.of("status", true, "message", result));
+        } catch (RuntimeException e) {
+            if (redirect) {
+                String target = frontendLoginUrl + "?verified=0&message=" + java.net.URLEncoder.encode(e.getMessage(), java.nio.charset.StandardCharsets.UTF_8);
+                return new RedirectView(target);
+            }
+            return ResponseEntity.badRequest()
+                    .body(Map.of("status", false, "message", e.getMessage()));
+        } catch (Exception e) {
+            if (redirect) {
+                String target = frontendLoginUrl + "?verified=0&message=" + java.net.URLEncoder.encode("Có lỗi xảy ra", java.nio.charset.StandardCharsets.UTF_8);
+                return new RedirectView(target);
+            }
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("status", false, "message", "Có lỗi xảy ra: " + e.getMessage()));
         }

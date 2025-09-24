@@ -137,9 +137,13 @@ public class DataInitializer implements CommandLineRunner {
             new String[]{"ACCESS_VIEW", "Xem danh sách quyền truy cập"},
             new String[]{"ACCESS_CREATE", "Thêm mới quyền truy cập"},
             new String[]{"ACCESS_UPDATE", "Cập nhật quyền truy cập"},
-            new String[]{"ACCESS_DELETE", "Xóa quyền truy cập"}
+            new String[]{"ACCESS_DELETE", "Xóa quyền truy cập"},
             
-            
+            //Quản lý bài viết
+            new String[]{"POST_VIEW", "Xem danh sách quyền truy cập"},
+            new String[]{"POST_CREATE", "Thêm mới quyền truy cập"},
+            new String[]{"POST_UPDATE", "Cập nhật quyền truy cập"},
+            new String[]{"POST_DELETE", "Xóa quyền truy cập"}
         );
         
         // Chỉ tạo các quyền chưa tồn tại

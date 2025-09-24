@@ -22,7 +22,8 @@ public class NewsService {
     public news createNews(NewsDto newsDto) {
         news news = new news();
         news.setTitle(newsDto.getTitle());
-        news.setContent(newsDto.getContent());
+        news.setContent_short(newsDto.getContent_short());
+        news.setContent_long(newsDto.getContent_long());
         news.setImage(newsDto.getImage());
         news.setStatus(newsDto.getStatus());
         news.setAuthor(newsDto.getAuthor());
@@ -34,7 +35,8 @@ public class NewsService {
         if (existingNews.isPresent()) {
             news news = existingNews.get();
             news.setTitle(newsDto.getTitle());
-            news.setContent(newsDto.getContent());
+            news.setContent_short(newsDto.getContent_short());
+            news.setContent_long(newsDto.getContent_long());
             news.setImage(newsDto.getImage());
             news.setStatus(newsDto.getStatus());
             news.setAuthor(newsDto.getAuthor());
