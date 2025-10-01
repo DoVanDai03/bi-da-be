@@ -66,7 +66,7 @@ public class EmailService {
         sb.append("  <table role=\"presentation\" cellspacing=\"0\" cellpadding=\"0\" border=\"0\" width=\"100%\" style=\"max-width:560px; background:#ffffff; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.06); overflow:hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', sans-serif; color:#1f2937;\">");
         // Header
         sb.append("    <tr><td style=\"background:linear-gradient(135deg,#4f46e5,#7c3aed); padding:24px 28px; color:#ffffff;\">");
-        sb.append("      <div style=\"font-size:18px; font-weight:600; letter-spacing:.3px;\">Thời Trang - Store</div>");
+        sb.append("      <div style=\"font-size:18px; font-weight:600; letter-spacing:.3px;\">Xbilliard - Store</div>");
         sb.append("      <div style=\"font-size:14px; opacity:.95; margin-top:6px;\">").append(title).append("</div>");
         sb.append("    </td></tr>");
         // Body
@@ -81,7 +81,7 @@ public class EmailService {
         sb.append("    </td></tr>");
         // Footer
         sb.append("    <tr><td style=\"padding:18px 28px; border-top:1px solid #eef2f7; background:#fafbff; color:#6b7280; font-size:12px;\">");
-        sb.append("      © ").append(java.time.Year.now()).append(" Thời Trang - Store. Bảo lưu mọi quyền.");
+        sb.append("      © ").append(java.time.Year.now()).append(" Xbilliard - Store. Bảo lưu mọi quyền.");
         sb.append("    </td></tr>");
         sb.append("  </table>\n");
         sb.append("</td></tr></table>\n");

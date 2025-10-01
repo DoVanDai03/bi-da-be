@@ -75,6 +75,7 @@ public class OrderService {
 
     @Transactional(rollbackFor = Exception.class)
     public Order createOrder(OrderDto orderDto) {
+        System.out.println("Tạo đơn hàng: " + orderDto);
         try {
             // Validate input
             if (orderDto == null) {
