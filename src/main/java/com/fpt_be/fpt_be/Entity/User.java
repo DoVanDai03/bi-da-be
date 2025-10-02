@@ -61,6 +61,13 @@ public class User {
     @Column(name = "verification_token_expires")
     private LocalDateTime verificationTokenExpires;
 
+    // Token reset mật khẩu
+    @Column(name = "reset_password_token", length = 64)
+    private String resetPasswordToken;
+
+    @Column(name = "reset_password_token_expires")
+    private LocalDateTime resetPasswordTokenExpires;
+
     @PrePersist
     protected void onCreate() {
         ngayTao = LocalDateTime.now();
@@ -121,5 +128,37 @@ public class User {
 
     public void setIsBlock(Integer isBlock) {
         this.isBlock = isBlock;
+    }
+
+    public String getVerificationToken() {
+        return verificationToken;
+    }
+
+    public void setVerificationToken(String verificationToken) {
+        this.verificationToken = verificationToken;
+    }
+
+    public LocalDateTime getVerificationTokenExpires() {
+        return verificationTokenExpires;
+    }
+
+    public void setVerificationTokenExpires(LocalDateTime verificationTokenExpires) {
+        this.verificationTokenExpires = verificationTokenExpires;
+    }
+
+    public String getResetPasswordToken() {
+        return resetPasswordToken;
+    }
+
+    public void setResetPasswordToken(String resetPasswordToken) {
+        this.resetPasswordToken = resetPasswordToken;
+    }
+
+    public LocalDateTime getResetPasswordTokenExpires() {
+        return resetPasswordTokenExpires;
+    }
+
+    public void setResetPasswordTokenExpires(LocalDateTime resetPasswordTokenExpires) {
+        this.resetPasswordTokenExpires = resetPasswordTokenExpires;
     }
 }

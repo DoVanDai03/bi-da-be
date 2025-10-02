@@ -56,6 +56,30 @@ public class EmailService {
         }
     }
 
+    public void sendResetPasswordEmail(String to, String name, String resetLink) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(to);
+            helper.setSubject("Đặt lại mật khẩu tài khoản của bạn");
+            String bodyHtml = "<p>Chào <strong>" + name + "</strong>,</p>"
+                + "<p>Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn.</p>"
+                + "<p>Vui lòng nhấp vào nút bên dưới để đặt lại mật khẩu mới.</p>"
+                + "<p style=\"margin-top: 16px; color: #555; font-size: 13px;\">Liên kết sẽ hết hạn sau 1 giờ.</p>"
+                + "<p style=\"margin-top: 16px; color: #dc2626; font-size: 13px;\">Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.</p>";
+            String htmlContent = buildEmailTemplate(
+                "Đặt lại mật khẩu",
+                bodyHtml,
+                "Đặt lại mật khẩu",
+                resetLink
+            );
+            helper.setText(htmlContent, true);
+            mailSender.send(message);
+        } catch (MessagingException e) {
+            throw new RuntimeException("Không thể gửi email đặt lại mật khẩu: " + e.getMessage());
+        }
+    }
+
     private String buildEmailTemplate(String title, String bodyHtml, String buttonText, String buttonLink) {
         StringBuilder sb = new StringBuilder();
         sb.append("<!DOCTYPE html>");
